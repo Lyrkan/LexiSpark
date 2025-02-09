@@ -1,0 +1,519 @@
+[
+  {
+    "name": "Letter-based Categories",
+    "description": "Categories based on specific letters in words",
+    "subcategories": [
+      {
+        "name": "Words Ending in -ing",
+        "description": "Find words that end with 'ing'",
+        "rules": {
+          "type": "ends_with",
+          "params": { "suffix": "ing" }
+        }
+      },
+      {
+        "name": "Words Containing 'ea'",
+        "description": "Can you find words containing the letters 'ea' together?",
+        "rules": {
+          "type": "contains",
+          "params": { "pattern": "ea" }
+        }
+      }
+    ]
+  },
+  {
+    "name": "Word Length Categories",
+    "description": "Categories based on word length",
+    "subcategories": [
+      {
+        "name": "3-Letter Words",
+        "description": "Find all the words that are exactly 3 letters long",
+        "rules": {
+          "type": "length",
+          "params": { "length": 3 }
+        }
+      },
+      {
+        "name": "4-Letter Words",
+        "description": "Find all the words that are exactly 4 letters long",
+        "rules": {
+          "type": "length",
+          "params": { "length": 4 }
+        }
+      },
+      {
+        "name": "5-Letter Words",
+        "description": "Find all the words that are exactly 5 letters long",
+        "rules": {
+          "type": "length",
+          "params": { "length": 5 }
+        }
+      },
+      {
+        "name": "6-Letter Words",
+        "description": "Find all the words that are exactly 6 letters long",
+        "rules": {
+          "type": "length",
+          "params": { "length": 6 }
+        }
+      },
+      {
+        "name": "7-Letter Words",
+        "description": "Find all the words that are exactly 7 letters long",
+        "rules": {
+          "type": "length",
+          "params": { "length": 7 }
+        }
+      },
+      {
+        "name": "Short Words",
+        "description": "Find words that are 4 letters or shorter",
+        "rules": {
+          "type": "max_length",
+          "params": { "length": 4 }
+        }
+      },
+      {
+        "name": "Long Words",
+        "description": "Find words that are 8 letters or longer",
+        "rules": {
+          "type": "min_length",
+          "params": { "length": 8 }
+        }
+      }
+    ]
+  },
+  {
+    "name": "Themed Categories",
+    "description": "Categories based on specific themes",
+    "subcategories": [
+      {
+        "name": "Animal Names",
+        "description": "Guess the names of different animals",
+        "rules": {
+          "type": "in_set",
+          "params": {
+            "words": [
+              "bear",
+              "bird",
+              "deer",
+              "duck",
+              "fish",
+              "lion",
+              "mouse",
+              "seal",
+              "sheep",
+              "snake",
+              "wolf",
+              "horse"
+            ]
+          }
+        }
+      },
+      {
+        "name": "Body Parts",
+        "description": "Find words related to parts of the body",
+        "rules": {
+          "type": "in_set",
+          "params": {
+            "words": [
+              "head",
+              "face",
+              "shoulder",
+              "tongue",
+              "back",
+              "body",
+              "crown",
+              "hand",
+              "heart",
+              "brain",
+              "skin",
+              "eye"
+            ]
+          }
+        }
+      },
+      {
+        "name": "Nature Words",
+        "description": "Words related to nature and the environment",
+        "rules": {
+          "type": "in_set",
+          "params": {
+            "words": [
+              "water",
+              "mountain",
+              "flower",
+              "plant",
+              "natural",
+              "spring",
+              "light",
+              "species",
+              "grain",
+              "nature",
+              "ground",
+              "earth",
+              "shell",
+              "spirit",
+              "element",
+              "surface",
+              "color",
+              "white",
+              "sound",
+              "power"
+            ]
+          }
+        }
+      },
+      {
+        "name": "Positive Words",
+        "description": "Words with positive connotations",
+        "rules": {
+          "type": "in_set",
+          "params": {
+            "words": [
+              "pleasure",
+              "advance",
+              "complete",
+              "superior",
+              "positive",
+              "strong",
+              "free",
+              "capable",
+              "regular",
+              "progress",
+              "promise",
+              "security",
+              "familiar",
+              "clear",
+              "quality",
+              "support",
+              "strength",
+              "right",
+              "success",
+              "delicate",
+              "tender",
+              "order",
+              "present",
+              "service",
+              "original",
+              "passion",
+              "solution",
+              "open"
+            ]
+          }
+        }
+      },
+      {
+        "name": "Colors and Appearance",
+        "description": "Words related to colors and visual appearance",
+        "rules": {
+          "type": "in_set",
+          "params": {
+            "words": [
+              "white",
+              "color",
+              "light",
+              "dark",
+              "clear",
+              "bright",
+              "sharp",
+              "round",
+              "straight",
+              "small",
+              "large",
+              "narrow",
+              "circular"
+            ]
+          }
+        }
+      },
+      {
+        "name": "Emotions and Feelings",
+        "description": "Words describing emotions and feelings",
+        "rules": {
+          "type": "in_set",
+          "params": {
+            "words": [
+              "pleasure",
+              "passion",
+              "tender",
+              "familiar",
+              "surprise",
+              "distress",
+              "temper",
+              "feeling",
+              "security",
+              "support",
+              "free",
+              "peculiar"
+            ]
+          }
+        }
+      },
+      {
+        "name": "Household Objects",
+        "description": "Common objects found in a house",
+        "rules": {
+          "type": "in_set",
+          "params": {
+            "words": [
+              "table",
+              "house",
+              "frame",
+              "crown",
+              "scale",
+              "machine",
+              "vessel",
+              "compass",
+              "record",
+              "string",
+              "shell",
+              "mark"
+            ]
+          }
+        }
+      },
+      {
+        "name": "Actions and Movement",
+        "description": "Words describing actions or movement",
+        "rules": {
+          "type": "in_set",
+          "params": {
+            "words": [
+              "break",
+              "stand",
+              "press",
+              "touch",
+              "produce",
+              "change",
+              "approach",
+              "transfer",
+              "throw",
+              "turn",
+              "pass",
+              "hold",
+              "enter",
+              "raise",
+              "fall",
+              "strike"
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "name": "Complete Alphabet",
+    "description": "Categories for every letter of the alphabet",
+    "subcategories": [
+      {
+        "name": "Words Starting with A",
+        "description": "Can you guess all the words that start with the letter A?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "a" }
+        }
+      },
+      {
+        "name": "Words Starting with B",
+        "description": "Can you guess all the words that start with the letter B?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "b" }
+        }
+      },
+      {
+        "name": "Words Starting with C",
+        "description": "Can you guess all the words that start with the letter C?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "c" }
+        }
+      },
+      {
+        "name": "Words Starting with D",
+        "description": "Can you guess all the words that start with the letter D?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "d" }
+        }
+      },
+      {
+        "name": "Words Starting with E",
+        "description": "Can you guess all the words that start with the letter E?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "e" }
+        }
+      },
+      {
+        "name": "Words Starting with F",
+        "description": "Can you guess all the words that start with the letter F?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "f" }
+        }
+      },
+      {
+        "name": "Words Starting with G",
+        "description": "Can you guess all the words that start with the letter G?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "g" }
+        }
+      },
+      {
+        "name": "Words Starting with H",
+        "description": "Can you guess all the words that start with the letter H?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "h" }
+        }
+      },
+      {
+        "name": "Words Starting with I",
+        "description": "Can you guess all the words that start with the letter I?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "i" }
+        }
+      },
+      {
+        "name": "Words Starting with J",
+        "description": "Can you guess all the words that start with the letter J?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "j" }
+        }
+      },
+      {
+        "name": "Words Starting with K",
+        "description": "Can you guess all the words that start with the letter K?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "k" }
+        }
+      },
+      {
+        "name": "Words Starting with L",
+        "description": "Can you guess all the words that start with the letter L?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "l" }
+        }
+      },
+      {
+        "name": "Words Starting with M",
+        "description": "Can you guess all the words that start with the letter M?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "m" }
+        }
+      },
+      {
+        "name": "Words Starting with N",
+        "description": "Can you guess all the words that start with the letter N?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "n" }
+        }
+      },
+      {
+        "name": "Words Starting with O",
+        "description": "Can you guess all the words that start with the letter O?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "o" }
+        }
+      },
+      {
+        "name": "Words Starting with P",
+        "description": "Can you guess all the words that start with the letter P?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "p" }
+        }
+      },
+      {
+        "name": "Words Starting with Q",
+        "description": "Can you guess all the words that start with the letter Q?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "q" }
+        }
+      },
+      {
+        "name": "Words Starting with R",
+        "description": "Can you guess all the words that start with the letter R?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "r" }
+        }
+      },
+      {
+        "name": "Words Starting with S",
+        "description": "Can you guess all the words that start with the letter S?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "s" }
+        }
+      },
+      {
+        "name": "Words Starting with T",
+        "description": "Can you guess all the words that start with the letter T?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "t" }
+        }
+      },
+      {
+        "name": "Words Starting with U",
+        "description": "Can you guess all the words that start with the letter U?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "u" }
+        }
+      },
+      {
+        "name": "Words Starting with V",
+        "description": "Can you guess all the words that start with the letter V?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "v" }
+        }
+      },
+      {
+        "name": "Words Starting with W",
+        "description": "Can you guess all the words that start with the letter W?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "w" }
+        }
+      },
+      {
+        "name": "Words Starting with X",
+        "description": "Can you guess all the words that start with the letter X?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "x" }
+        }
+      },
+      {
+        "name": "Words Starting with Y",
+        "description": "Can you guess all the words that start with the letter Y?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "y" }
+        }
+      },
+      {
+        "name": "Words Starting with Z",
+        "description": "Can you guess all the words that start with the letter Z?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "z" }
+        }
+      }
+    ]
+  }
+]

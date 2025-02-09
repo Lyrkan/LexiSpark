@@ -1,0 +1,25 @@
+services:
+  init-volume:
+    image: busybox
+    user: "1001:1001"
+    volumes:
+      - db-data:/data
+    command: chown -R 1001:1001 /data
+
+  app:
+    user: "nextjs"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - db-data:/app/prisma/db
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      init-volume:
+        condition: service_completed_successfully
+
+volumes:
+  db-data:

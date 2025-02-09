@@ -1,0 +1,53 @@
+// This is your Prisma schema file
+datasource db {
+  provider = "sqlite"
+  url      = "file:./db/lexispark.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Word {
+  id         Int       @id @default(autoincrement())
+  word       String    
+  normalized String    // Normalized version without accents
+  length     Int
+  language   String    // e.g., 'en', 'fr'
+  categories Category[]
+
+  @@unique([word, language])
+  @@unique([normalized, language])
+  @@index([language])
+}
+
+model Category {
+  id          Int        @id @default(autoincrement())
+  name        String   
+  description String
+  language    String     // e.g., 'en', 'fr'
+  type        String?    // Category type (e.g., 'starts_with', 'length', 'custom')
+  rules       String?    // JSON string containing the category rules
+  bloomFilter Bytes?     // Serialized bloom filter
+  words       Word[]
+  active      Boolean    @default(true)
+  isParent    Boolean    @default(false)
+  parent      Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  parentId    Int?
+  children    Category[] @relation("CategoryHierarchy")
+
+  @@unique([name, language])
+  @@index([language])
+  @@index([active])
+  @@index([isParent])
+}
+
+model Game {
+  id         Int      @id @default(autoincrement())
+  categoryId Int
+  startTime  DateTime @default(now())
+  endTime    DateTime?
+  guesses    Int      @default(0)
+  mistakes   Int      @default(0)
+  completed  Boolean  @default(false)
+} 

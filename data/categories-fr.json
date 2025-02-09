@@ -1,0 +1,582 @@
+[
+  {
+    "name": "Catégories basées sur les lettres",
+    "description": "Catégories basées sur des lettres spécifiques",
+    "subcategories": [
+      {
+        "name": "Mots se terminant par -er",
+        "description": "Trouvez des mots qui se terminent par 'er'",
+        "rules": {
+          "type": "ends_with",
+          "params": { "suffix": "er" }
+        }
+      },
+      {
+        "name": "Mots contenant 'ai'",
+        "description": "Pouvez-vous trouver des mots contenant les lettres 'ai' ensemble?",
+        "rules": {
+          "type": "contains",
+          "params": { "pattern": "ai" }
+        }
+      }
+    ]
+  },
+  {
+    "name": "Catégories par longueur",
+    "description": "Catégories basées sur la longueur des mots",
+    "subcategories": [
+      {
+        "name": "Mots de 3 lettres",
+        "description": "Trouvez tous les mots qui ont exactement 3 lettres",
+        "rules": {
+          "type": "length",
+          "params": { "length": 3 }
+        }
+      },
+      {
+        "name": "Mots de 4 lettres",
+        "description": "Trouvez tous les mots qui ont exactement 4 lettres",
+        "rules": {
+          "type": "length",
+          "params": { "length": 4 }
+        }
+      },
+      {
+        "name": "Mots de 5 lettres",
+        "description": "Trouvez tous les mots qui ont exactement 5 lettres",
+        "rules": {
+          "type": "length",
+          "params": { "length": 5 }
+        }
+      },
+      {
+        "name": "Mots de 6 lettres",
+        "description": "Trouvez tous les mots qui ont exactement 6 lettres",
+        "rules": {
+          "type": "length",
+          "params": { "length": 6 }
+        }
+      },
+      {
+        "name": "Mots de 7 lettres",
+        "description": "Trouvez tous les mots qui ont exactement 7 lettres",
+        "rules": {
+          "type": "length",
+          "params": { "length": 7 }
+        }
+      },
+      {
+        "name": "Mots courts",
+        "description": "Trouvez les mots qui ont 4 lettres ou moins",
+        "rules": {
+          "type": "max_length",
+          "params": { "length": 4 }
+        }
+      },
+      {
+        "name": "Mots longs",
+        "description": "Trouvez les mots qui ont 8 lettres ou plus",
+        "rules": {
+          "type": "min_length",
+          "params": { "length": 8 }
+        }
+      }
+    ]
+  },
+  {
+    "name": "Catégories thématiques",
+    "description": "Catégories basées sur des thèmes spécifiques",
+    "subcategories": [
+      {
+        "name": "Noms d'animaux",
+        "description": "Devinez les noms de différents animaux",
+        "rules": {
+          "type": "in_set",
+          "params": {
+            "words": [
+              "chat",
+              "chien",
+              "oiseau",
+              "poisson",
+              "ours",
+              "loup",
+              "mouton",
+              "rat",
+              "souris",
+              "vache",
+              "cochon",
+              "bête",
+              "animal"
+            ]
+          }
+        }
+      },
+      {
+        "name": "Parties du corps",
+        "description": "Trouvez les mots liés aux parties du corps",
+        "rules": {
+          "type": "in_set",
+          "params": {
+            "words": [
+              "tête",
+              "face",
+              "main",
+              "corps",
+              "bras",
+              "pied",
+              "dos",
+              "langue",
+              "vue",
+              "œil",
+              "bouche",
+              "cœur",
+              "membre"
+            ]
+          }
+        }
+      },
+      {
+        "name": "Actions et Mouvements",
+        "description": "Mots décrivant des actions ou des mouvements",
+        "rules": {
+          "type": "in_set",
+          "params": {
+            "words": [
+              "aller",
+              "venir",
+              "partir",
+              "passer",
+              "porter",
+              "tenir",
+              "montrer",
+              "rester",
+              "continuer",
+              "commencer",
+              "entendre",
+              "attendre",
+              "revenir",
+              "jouer",
+              "toucher",
+              "suivre",
+              "laisser",
+              "mettre",
+              "prendre",
+              "faire",
+              "voir",
+              "donner",
+              "agir",
+              "poser",
+              "retrouver",
+              "perdre"
+            ]
+          }
+        }
+      },
+      {
+        "name": "Mots Positifs",
+        "description": "Mots avec des connotations positives",
+        "rules": {
+          "type": "in_set",
+          "params": {
+            "words": [
+              "bien",
+              "bon",
+              "meilleur",
+              "fort",
+              "possible",
+              "important",
+              "mieux",
+              "simple",
+              "grâce",
+              "aimer",
+              "propre",
+              "nouveau",
+              "grand",
+              "certain",
+              "comprendre",
+              "permettre",
+              "accepter",
+              "reconnaître",
+              "offrir",
+              "réussir",
+              "ensemble"
+            ]
+          }
+        }
+      },
+      {
+        "name": "Personnes et Relations",
+        "description": "Mots liés aux personnes et aux relations",
+        "rules": {
+          "type": "in_set",
+          "params": {
+            "words": [
+              "homme",
+              "femme",
+              "enfant",
+              "monsieur",
+              "famille",
+              "ministre",
+              "personne",
+              "gens",
+              "jeune",
+              "groupe",
+              "autre",
+              "nous",
+              "vous",
+              "elle",
+              "lui",
+              "celui",
+              "moi",
+              "eux",
+              "ensemble",
+              "chaque",
+              "votre",
+              "notre"
+            ]
+          }
+        }
+      },
+      {
+        "name": "Temps et Périodes",
+        "description": "Mots liés au temps et aux périodes",
+        "rules": {
+          "type": "in_set",
+          "params": {
+            "words": [
+              "temps",
+              "jour",
+              "heure",
+              "année",
+              "mois",
+              "semaine",
+              "moment",
+              "maintenant",
+              "aujourd'hui",
+              "toujours",
+              "jamais",
+              "déjà",
+              "après",
+              "pendant",
+              "depuis",
+              "fin",
+              "quand",
+              "présent",
+              "dernier",
+              "suite",
+              "puis",
+              "surtout",
+              "également"
+            ]
+          }
+        }
+      },
+      {
+        "name": "Concepts Abstraits",
+        "description": "Mots représentant des concepts abstraits",
+        "rules": {
+          "type": "in_set",
+          "params": {
+            "words": [
+              "vie",
+              "ordre",
+              "effet",
+              "sens",
+              "idée",
+              "force",
+              "raison",
+              "cause",
+              "question",
+              "situation",
+              "fait",
+              "cas",
+              "chose",
+              "problème",
+              "besoin",
+              "pouvoir",
+              "savoir",
+              "croire",
+              "point",
+              "partie",
+              "rapport",
+              "mot"
+            ]
+          }
+        }
+      },
+      {
+        "name": "Organisation et Société",
+        "description": "Mots liés à l'organisation et la société",
+        "rules": {
+          "type": "in_set",
+          "params": {
+            "words": [
+              "pays",
+              "monde",
+              "politique",
+              "gouvernement",
+              "service",
+              "national",
+              "région",
+              "projet",
+              "plan",
+              "droit",
+              "travail",
+              "cours",
+              "affaire",
+              "général",
+              "ministre",
+              "français",
+              "place",
+              "nom",
+              "lieu"
+            ]
+          }
+        }
+      },
+      {
+        "name": "Nombres et Quantités",
+        "description": "Mots exprimant des nombres ou des quantités",
+        "rules": {
+          "type": "in_set",
+          "params": {
+            "words": [
+              "un",
+              "deux",
+              "trois",
+              "plus",
+              "moins",
+              "peu",
+              "beaucoup",
+              "plusieurs",
+              "nombre",
+              "tant",
+              "tout",
+              "rien",
+              "quelque",
+              "chaque",
+              "premier",
+              "trop",
+              "aucun",
+              "seul"
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "name": "Alphabet complet",
+    "description": "Catégories pour chaque lettre de l'alphabet",
+    "subcategories": [
+      {
+        "name": "Mots commençant par A",
+        "description": "Pouvez-vous deviner tous les mots qui commencent par la lettre A ?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "a" }
+        }
+      },
+      {
+        "name": "Mots commençant par B",
+        "description": "Pouvez-vous deviner tous les mots qui commencent par la lettre B ?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "b" }
+        }
+      },
+      {
+        "name": "Mots commençant par C",
+        "description": "Pouvez-vous deviner tous les mots qui commencent par la lettre C ?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "c" }
+        }
+      },
+      {
+        "name": "Mots commençant par D",
+        "description": "Pouvez-vous deviner tous les mots qui commencent par la lettre D ?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "d" }
+        }
+      },
+      {
+        "name": "Mots commençant par E",
+        "description": "Pouvez-vous deviner tous les mots qui commencent par la lettre E ?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "e" }
+        }
+      },
+      {
+        "name": "Mots commençant par F",
+        "description": "Pouvez-vous deviner tous les mots qui commencent par la lettre F ?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "f" }
+        }
+      },
+      {
+        "name": "Mots commençant par G",
+        "description": "Pouvez-vous deviner tous les mots qui commencent par la lettre G ?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "g" }
+        }
+      },
+      {
+        "name": "Mots commençant par H",
+        "description": "Pouvez-vous deviner tous les mots qui commencent par la lettre H ?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "h" }
+        }
+      },
+      {
+        "name": "Mots commençant par I",
+        "description": "Pouvez-vous deviner tous les mots qui commencent par la lettre I ?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "i" }
+        }
+      },
+      {
+        "name": "Mots commençant par J",
+        "description": "Pouvez-vous deviner tous les mots qui commencent par la lettre J ?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "j" }
+        }
+      },
+      {
+        "name": "Mots commençant par K",
+        "description": "Pouvez-vous deviner tous les mots qui commencent par la lettre K ?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "k" }
+        }
+      },
+      {
+        "name": "Mots commençant par L",
+        "description": "Pouvez-vous deviner tous les mots qui commencent par la lettre L ?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "l" }
+        }
+      },
+      {
+        "name": "Mots commençant par M",
+        "description": "Pouvez-vous deviner tous les mots qui commencent par la lettre M ?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "m" }
+        }
+      },
+      {
+        "name": "Mots commençant par N",
+        "description": "Pouvez-vous deviner tous les mots qui commencent par la lettre N ?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "n" }
+        }
+      },
+      {
+        "name": "Mots commençant par O",
+        "description": "Pouvez-vous deviner tous les mots qui commencent par la lettre O ?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "o" }
+        }
+      },
+      {
+        "name": "Mots commençant par P",
+        "description": "Pouvez-vous deviner tous les mots qui commencent par la lettre P ?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "p" }
+        }
+      },
+      {
+        "name": "Mots commençant par Q",
+        "description": "Pouvez-vous deviner tous les mots qui commencent par la lettre Q ?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "q" }
+        }
+      },
+      {
+        "name": "Mots commençant par R",
+        "description": "Pouvez-vous deviner tous les mots qui commencent par la lettre R ?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "r" }
+        }
+      },
+      {
+        "name": "Mots commençant par S",
+        "description": "Pouvez-vous deviner tous les mots qui commencent par la lettre S ?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "s" }
+        }
+      },
+      {
+        "name": "Mots commençant par T",
+        "description": "Pouvez-vous deviner tous les mots qui commencent par la lettre T ?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "t" }
+        }
+      },
+      {
+        "name": "Mots commençant par U",
+        "description": "Pouvez-vous deviner tous les mots qui commencent par la lettre U ?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "u" }
+        }
+      },
+      {
+        "name": "Mots commençant par V",
+        "description": "Pouvez-vous deviner tous les mots qui commencent par la lettre V ?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "v" }
+        }
+      },
+      {
+        "name": "Mots commençant par W",
+        "description": "Pouvez-vous deviner tous les mots qui commencent par la lettre W ?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "w" }
+        }
+      },
+      {
+        "name": "Mots commençant par X",
+        "description": "Pouvez-vous deviner tous les mots qui commencent par la lettre X ?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "x" }
+        }
+      },
+      {
+        "name": "Mots commençant par Y",
+        "description": "Pouvez-vous deviner tous les mots qui commencent par la lettre Y ?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "y" }
+        }
+      },
+      {
+        "name": "Mots commençant par Z",
+        "description": "Pouvez-vous deviner tous les mots qui commencent par la lettre Z ?",
+        "rules": {
+          "type": "starts_with",
+          "params": { "letter": "z" }
+        }
+      }
+    ]
+  }
+]
