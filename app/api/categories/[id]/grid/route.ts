@@ -17,71 +17,78 @@ export async function GET(
     const { searchParams } = new URL(request.url);
     const language = searchParams.get("language") || "en";
 
-    // Get all valid categories for the current language
-    const validCategories = await prisma.category.findMany({
-      where: {
-        AND: [
-          { language },
-          { isParent: false },
-          { active: true },
-          { words: { some: {} } },
-        ],
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    if (validCategories.length === 0) {
-      return NextResponse.json(
-        { error: "No valid categories found for this language" },
-        { status: 404 },
-      );
-    }
+    // Get all valid categories for special IDs handling
+    const getValidCategoriesForLanguage = async (lang: string) => {
+      return prisma.category.findMany({
+        where: {
+          AND: [
+            { language: lang },
+            { isParent: false },
+            { active: true },
+            { words: { some: {} } },
+          ],
+        },
+        select: {
+          id: true,
+        },
+      });
+    };
 
     // Handle special IDs
-    if (id === "daily") {
-      const dailyNumber = getDailyNumber("daily");
-      const dailyIndex = dailyNumber % validCategories.length;
-      const selectedCategory = validCategories[dailyIndex];
-      if (!selectedCategory) {
-        console.error(
-          `Invalid daily index: ${dailyIndex} for length ${validCategories.length}`,
-        );
+    if (id === "daily" || id === "hidden-daily" || id === "random") {
+      const validCategories = await getValidCategoriesForLanguage(language);
+
+      if (validCategories.length === 0) {
         return NextResponse.json(
-          { error: "Failed to select valid category" },
-          { status: 500 },
+          { error: "No valid categories found for this language" },
+          { status: 404 },
         );
       }
-      categoryId = selectedCategory.id;
-    } else if (id === "hidden-daily") {
-      const hiddenNumber = getDailyNumber("hidden");
-      const hiddenDailyIndex = hiddenNumber % validCategories.length;
-      const selectedCategory = validCategories[hiddenDailyIndex];
-      if (!selectedCategory) {
-        console.error(
-          `Invalid hidden-daily index: ${hiddenDailyIndex} for length ${validCategories.length}`,
-        );
-        return NextResponse.json(
-          { error: "Failed to select valid category" },
-          { status: 500 },
-        );
+
+      if (id === "daily") {
+        const dailyNumber = getDailyNumber("daily");
+        const dailyIndex = dailyNumber % validCategories.length;
+        const selectedCategory = validCategories[dailyIndex];
+        if (!selectedCategory) {
+          console.error(
+            `Invalid daily index: ${dailyIndex} for length ${validCategories.length}`,
+          );
+          return NextResponse.json(
+            { error: "Failed to select valid category" },
+            { status: 500 },
+          );
+        }
+        categoryId = selectedCategory.id;
+      } else if (id === "hidden-daily") {
+        const hiddenNumber = getDailyNumber("hidden");
+        const hiddenDailyIndex = hiddenNumber % validCategories.length;
+        const selectedCategory = validCategories[hiddenDailyIndex];
+        if (!selectedCategory) {
+          console.error(
+            `Invalid hidden-daily index: ${hiddenDailyIndex} for length ${validCategories.length}`,
+          );
+          return NextResponse.json(
+            { error: "Failed to select valid category" },
+            { status: 500 },
+          );
+        }
+        categoryId = selectedCategory.id;
+        isHiddenDaily = true;
+      } else {
+        // Random category
+        const randomIndex = Math.floor(Math.random() * validCategories.length);
+        const selectedCategory = validCategories[randomIndex];
+        if (!selectedCategory) {
+          console.error(
+            `Invalid random index: ${randomIndex} for length ${validCategories.length}`,
+          );
+          return NextResponse.json(
+            { error: "Failed to select valid category" },
+            { status: 500 },
+          );
+        }
+        categoryId = selectedCategory.id;
       }
-      categoryId = selectedCategory.id;
-      isHiddenDaily = true;
-    } else if (id === "random") {
-      const randomIndex = Math.floor(Math.random() * validCategories.length);
-      const selectedCategory = validCategories[randomIndex];
-      if (!selectedCategory) {
-        console.error(
-          `Invalid random index: ${randomIndex} for length ${validCategories.length}`,
-        );
-        return NextResponse.json(
-          { error: "Failed to select valid category" },
-          { status: 500 },
-        );
-      }
-      categoryId = selectedCategory.id;
     } else {
       categoryId = parseInt(id);
       if (isNaN(categoryId)) {
@@ -97,7 +104,6 @@ export async function GET(
         id: categoryId,
         active: true,
         isParent: false,
-        language,
         words: { some: {} },
       },
       select: {

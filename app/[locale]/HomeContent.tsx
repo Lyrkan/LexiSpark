@@ -1,8 +1,14 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import {
+  useRouter,
+  useSearchParams,
+  usePathname,
+  useParams,
+} from "next/navigation";
+import { useTranslations } from "next-intl";
 import { getDailyNumber } from "@/lib/daily";
 import { GB as GBFlag, FR as FRFlag } from "country-flag-icons/react/3x2";
 import {
@@ -12,7 +18,6 @@ import {
   FolderIcon,
   ChevronRightIcon,
 } from "@heroicons/react/24/outline";
-import LoadingSpinner from "@/app/components/LoadingSpinner";
 
 interface Category {
   id?: number;
@@ -44,7 +49,10 @@ const AVAILABLE_LANGUAGES = [
 ];
 
 // Special categories factory
-function createSpecialCategories(categories: Category[]): Category[] {
+function createSpecialCategories(
+  categories: Category[],
+  t: (key: string) => string,
+): Category[] {
   if (!categories.length) return [];
 
   // Get valid categories (non-parent categories that are not special)
@@ -61,23 +69,22 @@ function createSpecialCategories(categories: Category[]): Category[] {
     {
       id: validCategories[dailyIndex].id,
       specialId: "daily",
-      name: "Daily Challenge",
-      description: "A new category to discover every day",
+      name: t("specialCategories.daily.name"),
+      description: t("specialCategories.daily.description"),
       isSpecial: true,
     },
     {
       id: validCategories[hiddenDailyIndex].id,
       specialId: "hidden-daily",
-      name: "Hidden Daily Challenge",
-      description:
-        "Mystery category that changes daily - can you guess what it is?",
+      name: t("specialCategories.hiddenDaily.name"),
+      description: t("specialCategories.hiddenDaily.description"),
       isSpecial: true,
       isHiddenDaily: true,
     },
     {
       specialId: "random",
-      name: "Random Challenge",
-      description: "Try your luck with a random category",
+      name: t("specialCategories.random.name"),
+      description: t("specialCategories.random.description"),
       isSpecial: true,
     },
   ];
@@ -89,7 +96,6 @@ function CategoryCard({
   category,
   onClick,
   allCategories,
-  selectedLanguage,
 }: {
   category: Category;
   onClick?: () => void;
@@ -153,12 +159,10 @@ function CategoryCard({
   if (category.specialId) {
     if (category.specialId === "random" && validCategories.length > 0) {
       const randomIndex = Math.floor(Math.random() * validCategories.length);
-      href = `/play/${validCategories[randomIndex].id}?language=${selectedLanguage}`;
+      href = `/play/${validCategories[randomIndex].id}`;
     } else {
-      href = `/play/${category.specialId}?language=${selectedLanguage}`;
+      href = `/play/${category.specialId}`;
     }
-  } else {
-    href = `${href}?language=${selectedLanguage}`;
   }
 
   const baseClasses =
@@ -211,27 +215,32 @@ function CategoriesSection({ selectedLanguage }: { selectedLanguage: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedParent, setSelectedParent] = useState<Category | null>(null);
+  const t = useTranslations();
 
   // Load categories when language changes
   useEffect(() => {
-    setSelectedParent(null);
-    setLoading(true);
+    const fetchCategories = async () => {
+      setSelectedParent(null);
+      setLoading(true);
+      setError(null);
 
-    fetch(`/api/categories?language=${selectedLanguage}`)
-      .then((res) => res.json())
-      .then((data) => {
-        const specialCategories = createSpecialCategories(data);
+      try {
+        const res = await fetch(`/api/categories?language=${selectedLanguage}`);
+        const data = await res.json();
+        const specialCategories = createSpecialCategories(data, t);
         setCategories([...specialCategories, ...data]);
+      } catch {
+        setError(t("app.error.failedToLoad"));
+      } finally {
         setLoading(false);
-      })
-      .catch(() => {
-        setError("Failed to load categories");
-        setLoading(false);
-      });
-  }, [selectedLanguage]);
+      }
+    };
+
+    fetchCategories();
+  }, [selectedLanguage, t]);
 
   // Update selected parent when URL changes
   useEffect(() => {
@@ -253,7 +262,7 @@ function CategoriesSection({ selectedLanguage }: { selectedLanguage: string }) {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <LoadingSpinner message="Loading categories..." />
+        <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-500 rounded-full animate-spin" />
       </div>
     );
   }
@@ -276,7 +285,7 @@ function CategoriesSection({ selectedLanguage }: { selectedLanguage: string }) {
               className="text-indigo-600 hover:text-indigo-800 flex items-center gap-2 font-medium transition-all px-4 py-2 rounded-xl hover:bg-white/50 hover:scale-105"
             >
               <span className="text-2xl">←</span>
-              <span>Back to categories</span>
+              <span>{t("navigation.backToMenu")}</span>
             </button>
           </div>
           <div className="space-y-6">
@@ -304,7 +313,6 @@ function CategoriesSection({ selectedLanguage }: { selectedLanguage: string }) {
                 <CategoryCard
                   key={`special-${index}`}
                   category={category}
-                  onClick={() => handleParentClick(category)}
                   allCategories={categories}
                   selectedLanguage={selectedLanguage}
                 />
@@ -331,8 +339,20 @@ function CategoriesSection({ selectedLanguage }: { selectedLanguage: string }) {
   );
 }
 
-function HomeContent() {
-  const [selectedLanguage, setSelectedLanguage] = useState("en");
+export default function HomeContent() {
+  const router = useRouter();
+  const t = useTranslations();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const params = useParams();
+  const currentLocale = params.locale as string;
+
+  const handleLanguageChange = (locale: string) => {
+    const currentParams = new URLSearchParams(searchParams.toString());
+    currentParams.delete("category"); // Remove the category parameter when switching languages
+    const newPath = `/${locale}${pathname.substring(3)}${currentParams.toString() ? `?${currentParams.toString()}` : ""}`;
+    router.push(newPath);
+  };
 
   return (
     <main className="min-h-screen p-8">
@@ -349,7 +369,7 @@ function HomeContent() {
           </span>
         </h1>
         <p className="text-center text-gray-600 mb-12 text-lg">
-          Challenge your vocabulary in style ✨
+          {t("app.subtitle")}
         </p>
       </div>
 
@@ -358,9 +378,9 @@ function HomeContent() {
           {AVAILABLE_LANGUAGES.map((lang) => (
             <button
               key={lang.code}
-              onClick={() => setSelectedLanguage(lang.code)}
+              onClick={() => handleLanguageChange(lang.code)}
               className={`px-8 py-4 rounded-2xl font-medium transition-all transform hover:scale-105 ${
-                selectedLanguage === lang.code
+                currentLocale === lang.code
                   ? "bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white shadow-xl"
                   : "bg-white/80 backdrop-blur-sm hover:bg-white shadow-lg hover:shadow-xl text-gray-800"
               }`}
@@ -374,21 +394,7 @@ function HomeContent() {
         </div>
       </div>
 
-      <CategoriesSection selectedLanguage={selectedLanguage} />
+      <CategoriesSection selectedLanguage={currentLocale} />
     </main>
-  );
-}
-
-export default function Home() {
-  return (
-    <Suspense
-      fallback={
-        <main className="min-h-screen p-8 flex items-center justify-center">
-          <LoadingSpinner message="Loading..." />
-        </main>
-      }
-    >
-      <HomeContent />
-    </Suspense>
   );
 }

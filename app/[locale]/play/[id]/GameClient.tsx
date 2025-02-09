@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, useRef, useMemo } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { normalizeText } from "@/lib/textUtils";
 import {
-  checkWord,
   deserializeBloomFilter,
+  checkWord,
   SerializedBloomFilter,
 } from "@/lib/bloomFilter";
-import { normalizeText } from "@/lib/textUtils";
 import LoadingSpinner from "@/app/components/LoadingSpinner";
 
 interface GameState {
@@ -16,9 +17,9 @@ interface GameState {
   guessedWords: (string | null)[];
   startTime: number;
   endTime: number | null;
-  lastGuessedIndex?: number;
-  categoryName?: string;
+  categoryName: string;
   categoryId?: number;
+  lastGuessedIndex?: number;
 }
 
 interface VictoryModalProps {
@@ -34,25 +35,26 @@ function VictoryModal({
   timeTaken,
   onBackToMenu,
 }: VictoryModalProps) {
+  const t = useTranslations();
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 z-50">
       <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-10 max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/20">
         <div className="text-center mb-10">
           <div className="text-6xl mb-4">🎉</div>
           <h2 className="text-4xl font-black mb-4 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600">
-            Congratulations!
+            {t("victory.title")}
           </h2>
           <p className="text-xl text-gray-700">
             {categoryName === "Hidden Daily Challenge" ? (
               <>
-                You completed today&apos;s Hidden Daily Challenge!
+                {t("victory.completedHiddenDaily.title")}
                 <br />
                 <span className="text-lg text-gray-500">
-                  Come back tomorrow for a new mystery category
+                  {t("victory.completedHiddenDaily.subtitle")}
                 </span>
               </>
             ) : (
-              <>You completed &quot;{categoryName}&quot;!</>
+              <>{t("victory.completedCategory", { category: categoryName })}</>
             )}
           </p>
         </div>
@@ -62,21 +64,23 @@ function VictoryModal({
             <div className="text-4xl font-black text-indigo-700 mb-1">
               {wordCount}
             </div>
-            <div className="text-indigo-600 font-medium">Words Found</div>
+            <div className="text-indigo-600 font-medium">
+              {t("game.wordsFound")}
+            </div>
           </div>
           <div className="bg-gradient-to-br from-pink-50 to-pink-100 p-6 rounded-2xl text-center transform hover:scale-105 transition-transform">
             <div className="text-4xl font-black text-pink-700 mb-1">
               {Math.floor(timeTaken / 1000)}s
             </div>
-            <div className="text-pink-600 font-medium">Time</div>
+            <div className="text-pink-600 font-medium">{t("game.time")}</div>
           </div>
         </div>
 
         <button
           onClick={onBackToMenu}
-          className="w-full py-4 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white rounded-2xl hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 transition-all transform hover:scale-105 font-medium shadow-xl"
+          className="w-full px-8 py-4 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white rounded-2xl hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 transition-all transform hover:scale-105 font-medium shadow-xl"
         >
-          Back to Menu
+          {t("navigation.backToMenu")}
         </button>
       </div>
     </div>
@@ -85,6 +89,9 @@ function VictoryModal({
 
 export default function GameClient({ id }: { id: string }) {
   const router = useRouter();
+  const params = useParams();
+  const currentLocale = params.locale as string;
+  const t = useTranslations();
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [currentGuess, setCurrentGuess] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -116,7 +123,7 @@ export default function GameClient({ id }: { id: string }) {
   useEffect(() => {
     const guessedWordsSet = normalizedGuessedWordsRef.current;
 
-    fetch(`/api/categories/${id}/grid${window.location.search}`)
+    fetch(`/api/categories/${id}/grid?language=${currentLocale}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.error) {
@@ -142,76 +149,44 @@ export default function GameClient({ id }: { id: string }) {
         setCurrentTime(Date.now());
       })
       .catch(() => {
-        setError("Failed to load game data");
+        setError(t("app.error.failedToLoadGame"));
       });
 
     return () => {
       deserializedBloomFilterRef.current = null;
       guessedWordsSet.clear();
     };
-  }, [id]);
+  }, [id, t, currentLocale]);
 
-  // Initialize word refs only once when game state is first set
-  useEffect(() => {
-    if (gameState && !wordRefs.current.length) {
-      wordRefs.current = new Array(gameState.wordLengths.length).fill(null);
-    }
-  }, [gameState]);
+  const handleGuess = useMemo(
+    () => (normalizedGuess: string) => {
+      if (!gameState || gameState.endTime) return;
 
-  const handleGuess = useCallback(
-    async (normalizedGuess: string) => {
-      if (!gameState || !normalizedGuess || !deserializedBloomFilterRef.current)
-        return;
+      const guessedWordsSet = normalizedGuessedWordsRef.current;
+      if (guessedWordsSet.has(normalizedGuess)) return;
 
-      // Check if word was already guessed
-      if (normalizedGuessedWordsRef.current.has(normalizedGuess)) {
-        return;
-      }
+      const index = gameState.wordLengths.findIndex(
+        (length, i) =>
+          length === normalizedGuess.length && !gameState.guessedWords[i],
+      );
 
-      // Check the word against the bloom filter first
-      if (!checkWord(deserializedBloomFilterRef.current, normalizedGuess)) {
-        return;
-      }
+      if (index === -1) return;
 
-      // If the bloom filter says it might exist, check with the server
-      try {
-        const categoryIdToUse =
-          id === "hidden-daily" ? id : gameState.categoryId || id;
-        const response = await fetch(
-          `/api/categories/${categoryIdToUse}/guess${window.location.search}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ word: normalizedGuess }),
-          },
-        );
+      guessedWordsSet.add(normalizedGuess);
+      const newGuessedWords = [...gameState.guessedWords];
+      newGuessedWords[index] = normalizedGuess;
+      scrollToIndexRef.current = index;
 
-        const data = await response.json();
-
-        if (data.found) {
-          normalizedGuessedWordsRef.current.add(normalizedGuess);
-          setGameState((prev) => {
-            if (!prev) return prev;
-            const newGuessedWords = [...prev.guessedWords];
-            newGuessedWords[data.index] = data.displayWord || normalizedGuess;
-
-            const isComplete = newGuessedWords.every((word) => word !== null);
-
-            return {
-              ...prev,
-              guessedWords: newGuessedWords,
-              endTime: isComplete ? Date.now() : null,
-              lastGuessedIndex: data.index,
-            };
-          });
-          setCurrentGuess("");
-          scrollToIndexRef.current = data.index;
-        }
-      } catch {
-        setError("Failed to verify guess");
-      }
+      const allWordsGuessed = newGuessedWords.every((w) => w !== null);
+      setGameState({
+        ...gameState,
+        guessedWords: newGuessedWords,
+        lastGuessedIndex: index,
+        endTime: allWordsGuessed ? Date.now() : null,
+      });
+      setCurrentGuess("");
     },
-    [gameState, id],
+    [gameState],
   );
 
   useEffect(() => {
@@ -274,7 +249,7 @@ export default function GameClient({ id }: { id: string }) {
   if (!gameState) {
     return (
       <main className="min-h-screen p-8 flex items-center justify-center">
-        <LoadingSpinner message="Loading game..." />
+        <LoadingSpinner message={t("app.loadingGame")} />
       </main>
     );
   }
@@ -294,9 +269,9 @@ export default function GameClient({ id }: { id: string }) {
         <h1 className="text-4xl font-black text-center mb-12 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600">
           {gameState.categoryName === "Hidden Daily Challenge" ? (
             <>
-              Hidden Daily Challenge
+              {t("game.hiddenDaily.title")}
               <div className="text-lg font-normal text-gray-600 mt-2">
-                Try to guess what category this is!
+                {t("game.hiddenDaily.subtitle")}
               </div>
             </>
           ) : (
@@ -352,7 +327,7 @@ export default function GameClient({ id }: { id: string }) {
               onClick={() => router.push("/")}
               className="px-8 py-4 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white rounded-2xl hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 transition-all transform hover:scale-105 font-medium shadow-xl"
             >
-              Back to Menu
+              {t("navigation.backToMenu")}
             </button>
 
             <div className="flex-1">
@@ -361,14 +336,14 @@ export default function GameClient({ id }: { id: string }) {
                 value={currentGuess}
                 onChange={(e) => setCurrentGuess(normalizeText(e.target.value))}
                 className="w-full p-5 text-2xl text-center border-2 rounded-2xl border-gray-200 bg-white/90 backdrop-blur-sm focus:border-indigo-400 focus:ring focus:ring-indigo-100 transition-all font-medium text-gray-800 placeholder:text-gray-400"
-                placeholder="Type your guess..."
+                placeholder={t("game.typeYourGuess")}
                 disabled={gameState.endTime !== null}
               />
             </div>
 
             <div className="flex flex-col items-end gap-2">
               <div className="text-2xl font-bold whitespace-nowrap bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600">
-                Time:{" "}
+                {t("game.time")}:{" "}
                 {Math.floor(
                   ((gameState.endTime || currentTime) - gameState.startTime) /
                     1000,
@@ -376,9 +351,11 @@ export default function GameClient({ id }: { id: string }) {
                 s
               </div>
               <div className="text-base text-gray-600 whitespace-nowrap font-medium">
-                {gameState.wordLengths.length -
-                  gameState.guessedWords.filter((w) => w !== null).length}{" "}
-                words remaining
+                {t("game.wordsRemaining", {
+                  count:
+                    gameState.wordLengths.length -
+                    gameState.guessedWords.filter((w) => w !== null).length,
+                })}
               </div>
             </div>
           </div>

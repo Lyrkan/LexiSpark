@@ -1,0 +1,48 @@
+{
+  "app": {
+    "title": "LexiSpark",
+    "subtitle": "Challenge your vocabulary in style ✨",
+    "loading": "Loading...",
+    "loadingCategories": "Loading categories...",
+    "loadingGame": "Loading game...",
+    "error": {
+      "failedToLoad": "Failed to load categories",
+      "failedToLoadGame": "Failed to load game data"
+    }
+  },
+  "navigation": {
+    "backToMenu": "Back to categories"
+  },
+  "game": {
+    "typeYourGuess": "Type your guess...",
+    "time": "Time",
+    "wordsRemaining": "{count} words remaining",
+    "wordsFound": "Words Found",
+    "hiddenDaily": {
+      "title": "Hidden Daily Challenge",
+      "subtitle": "Try to guess what category this is!"
+    }
+  },
+  "victory": {
+    "title": "Congratulations!",
+    "completedCategory": "You completed \"{category}\"!",
+    "completedHiddenDaily": {
+      "title": "You completed today's Hidden Daily Challenge!",
+      "subtitle": "Come back tomorrow for a new mystery category"
+    }
+  },
+  "specialCategories": {
+    "daily": {
+      "name": "Daily Challenge",
+      "description": "A new category to discover every day"
+    },
+    "hiddenDaily": {
+      "name": "Hidden Daily Challenge",
+      "description": "Mystery category that changes daily - can you guess what it is?"
+    },
+    "random": {
+      "name": "Random Challenge",
+      "description": "Try your luck with a random category"
+    }
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "app": {
+    "title": "LexiSpark",
+    "subtitle": "Défiez votre vocabulaire avec style ✨",
+    "loading": "Chargement...",
+    "loadingCategories": "Chargement des catégories...",
+    "loadingGame": "Chargement du jeu...",
+    "error": {
+      "failedToLoad": "Échec du chargement des catégories",
+      "failedToLoadGame": "Échec du chargement des données du jeu"
+    }
+  },
+  "navigation": {
+    "backToMenu": "Retour aux catégories"
+  },
+  "game": {
+    "typeYourGuess": "Tapez votre proposition...",
+    "time": "Temps",
+    "wordsRemaining": "{count} mots restants",
+    "wordsFound": "Mots trouvés",
+    "hiddenDaily": {
+      "title": "Défi quotidien mystère",
+      "subtitle": "Essayez de deviner la catégorie !"
+    }
+  },
+  "victory": {
+    "title": "Félicitations !",
+    "completedCategory": "Vous avez terminé \"{category}\" !",
+    "completedHiddenDaily": {
+      "title": "Vous avez terminé le défi quotidien mystère !",
+      "subtitle": "Revenez demain pour une nouvelle catégorie mystère"
+    }
+  },
+  "specialCategories": {
+    "daily": {
+      "name": "Défi quotidien",
+      "description": "Une nouvelle catégorie à découvrir chaque jour"
+    },
+    "hiddenDaily": {
+      "name": "Défi quotidien mystère",
+      "description": "Catégorie mystère qui change chaque jour - saurez-vous deviner laquelle ?"
+    },
+    "random": {
+      "name": "Défi aléatoire",
+      "description": "Tentez votre chance avec une catégorie aléatoire"
+    }
+  }
+}
