@@ -96,6 +96,7 @@ function CategoryCard({
   category,
   onClick,
   allCategories,
+  selectedLanguage,
 }: {
   category: Category;
   onClick?: () => void;
@@ -144,25 +145,38 @@ function CategoryCard({
   }
 
   // Get valid categories for special challenges
-  const validCategories =
-    allCategories?.filter(
-      (c) =>
-        !c.isSpecial &&
-        !c.isParent &&
-        c.id !== undefined &&
-        (c.rules || c.subcategories?.length),
-    ) || [];
+  const getAllValidCategories = (
+    categories: Category[] | undefined,
+  ): Category[] => {
+    if (!categories) return [];
+    return categories.flatMap((cat) => {
+      if (cat.isParent) {
+        return getAllValidCategories(cat.children || cat.subcategories);
+      }
+
+      if (
+        !cat.isSpecial &&
+        cat.id !== undefined &&
+        cat.language === selectedLanguage
+      ) {
+        return [cat];
+      }
+
+      return [];
+    });
+  };
+
+  const validCategories = getAllValidCategories(allCategories);
 
   let href = `/play/${category.id}`;
 
   // Handle special categories
-  if (category.specialId) {
-    if (category.specialId === "random" && validCategories.length > 0) {
-      const randomIndex = Math.floor(Math.random() * validCategories.length);
-      href = `/play/${validCategories[randomIndex].id}`;
-    } else {
-      href = `/play/${category.specialId}`;
-    }
+  if (category.specialId === "random" && validCategories.length > 0) {
+    const randomIndex = Math.floor(Math.random() * validCategories.length);
+    const randomCategory = validCategories[randomIndex];
+    href = `/play/${randomCategory.id}`;
+  } else if (category.specialId && category.specialId !== "random") {
+    href = `/play/${category.specialId}`;
   }
 
   const baseClasses =

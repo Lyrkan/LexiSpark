@@ -35,7 +35,7 @@ export async function GET(
     };
 
     // Handle special IDs
-    if (id === "daily" || id === "hidden-daily" || id === "random") {
+    if (id === "daily" || id === "hidden-daily") {
       const validCategories = await getValidCategoriesForLanguage(language);
 
       if (validCategories.length === 0) {
@@ -59,7 +59,7 @@ export async function GET(
           );
         }
         categoryId = selectedCategory.id;
-      } else if (id === "hidden-daily") {
+      } else {
         const hiddenNumber = getDailyNumber("hidden");
         const hiddenDailyIndex = hiddenNumber % validCategories.length;
         const selectedCategory = validCategories[hiddenDailyIndex];
@@ -74,20 +74,6 @@ export async function GET(
         }
         categoryId = selectedCategory.id;
         isHiddenDaily = true;
-      } else {
-        // Random category
-        const randomIndex = Math.floor(Math.random() * validCategories.length);
-        const selectedCategory = validCategories[randomIndex];
-        if (!selectedCategory) {
-          console.error(
-            `Invalid random index: ${randomIndex} for length ${validCategories.length}`,
-          );
-          return NextResponse.json(
-            { error: "Failed to select valid category" },
-            { status: 500 },
-          );
-        }
-        categoryId = selectedCategory.id;
       }
     } else {
       categoryId = parseInt(id);
