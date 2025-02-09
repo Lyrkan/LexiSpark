@@ -17,39 +17,41 @@ export async function POST(
     const { searchParams } = new URL(request.url);
     const language = searchParams.get("language") || "en";
 
-    // Get all valid categories for the current language
-    const validCategories = await prisma.category.findMany({
-      where: {
-        AND: [
-          { language },
-          { isParent: false },
-          { active: true },
-          { words: { some: {} } },
-        ],
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    if (validCategories.length === 0) {
-      return NextResponse.json(
-        { error: "No valid categories found for this language" },
-        { status: 404 },
-      );
-    }
-
     // Handle special IDs
-    if (id === "daily") {
-      const dailyIndex = getDailyNumber("daily") % validCategories.length;
-      categoryId = validCategories[dailyIndex].id;
-    } else if (id === "hidden-daily") {
-      const hiddenDailyIndex =
-        getDailyNumber("hidden") % validCategories.length;
-      categoryId = validCategories[hiddenDailyIndex].id;
-    } else if (id === "random") {
-      const randomIndex = Math.floor(Math.random() * validCategories.length);
-      categoryId = validCategories[randomIndex].id;
+    if (id === "daily" || id === "hidden-daily" || id === "random") {
+      // Get all valid categories for the current language
+      const validCategories = await prisma.category.findMany({
+        where: {
+          AND: [
+            { language },
+            { isParent: false },
+            { active: true },
+            { words: { some: {} } },
+          ],
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (validCategories.length === 0) {
+        return NextResponse.json(
+          { error: "No valid categories found for this language" },
+          { status: 404 },
+        );
+      }
+
+      if (id === "daily") {
+        const dailyIndex = getDailyNumber("daily") % validCategories.length;
+        categoryId = validCategories[dailyIndex].id;
+      } else if (id === "hidden-daily") {
+        const hiddenDailyIndex =
+          getDailyNumber("hidden") % validCategories.length;
+        categoryId = validCategories[hiddenDailyIndex].id;
+      } else {
+        const randomIndex = Math.floor(Math.random() * validCategories.length);
+        categoryId = validCategories[randomIndex].id;
+      }
     } else {
       categoryId = parseInt(id);
     }

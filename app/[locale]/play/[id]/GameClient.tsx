@@ -159,34 +159,63 @@ export default function GameClient({ id }: { id: string }) {
   }, [id, t, currentLocale]);
 
   const handleGuess = useMemo(
-    () => (normalizedGuess: string) => {
+    () => async (normalizedGuess: string) => {
       if (!gameState || gameState.endTime) return;
 
       const guessedWordsSet = normalizedGuessedWordsRef.current;
       if (guessedWordsSet.has(normalizedGuess)) return;
 
-      const index = gameState.wordLengths.findIndex(
-        (length, i) =>
-          length === normalizedGuess.length && !gameState.guessedWords[i],
-      );
+      // First check with bloom filter
+      if (
+        !deserializedBloomFilterRef.current ||
+        !checkWord(deserializedBloomFilterRef.current, normalizedGuess)
+      ) {
+        return;
+      }
 
-      if (index === -1) return;
+      // Then validate with the API
+      try {
+        const response = await fetch(
+          `/api/categories/${id}/guess?language=${currentLocale}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ word: normalizedGuess }),
+          },
+        );
 
-      guessedWordsSet.add(normalizedGuess);
-      const newGuessedWords = [...gameState.guessedWords];
-      newGuessedWords[index] = normalizedGuess;
-      scrollToIndexRef.current = index;
+        const data = await response.json();
+        if (!data.found || data.index === undefined) return;
 
-      const allWordsGuessed = newGuessedWords.every((w) => w !== null);
-      setGameState({
-        ...gameState,
-        guessedWords: newGuessedWords,
-        lastGuessedIndex: index,
-        endTime: allWordsGuessed ? Date.now() : null,
-      });
-      setCurrentGuess("");
+        // Check if the word length matches the expected length at this index
+        if (
+          data.index >= gameState.wordLengths.length ||
+          gameState.wordLengths[data.index] !== normalizedGuess.length ||
+          gameState.guessedWords[data.index] !== null
+        ) {
+          return;
+        }
+
+        guessedWordsSet.add(normalizedGuess);
+        const newGuessedWords = [...gameState.guessedWords];
+        newGuessedWords[data.index] = data.displayWord || normalizedGuess;
+        scrollToIndexRef.current = data.index;
+
+        const allWordsGuessed = newGuessedWords.every((w) => w !== null);
+        setGameState({
+          ...gameState,
+          guessedWords: newGuessedWords,
+          lastGuessedIndex: data.index,
+          endTime: allWordsGuessed ? Date.now() : null,
+        });
+        setCurrentGuess("");
+      } catch (error) {
+        console.error("Failed to verify word:", error);
+      }
     },
-    [gameState],
+    [gameState, id, currentLocale],
   );
 
   useEffect(() => {
@@ -196,7 +225,9 @@ export default function GameClient({ id }: { id: string }) {
       deserializedBloomFilterRef.current &&
       checkWord(deserializedBloomFilterRef.current, normalizedCurrentGuess)
     ) {
-      handleGuess(normalizedCurrentGuess);
+      handleGuess(normalizedCurrentGuess).catch((error) => {
+        console.error("Failed to handle guess:", error);
+      });
     }
   }, [normalizedCurrentGuess, gameState, handleGuess]);
 
