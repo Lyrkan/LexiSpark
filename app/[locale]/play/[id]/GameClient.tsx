@@ -299,6 +299,7 @@ export default function GameClient({ id }: { id: string }) {
                     letterSpacing: "0.3rem",
                     display: "inline-block",
                     textAlign: "center",
+                    fontFamily: "var(--font-geist-mono)",
                   }}
                 >
                   {gameState.guessedWords[index]}
