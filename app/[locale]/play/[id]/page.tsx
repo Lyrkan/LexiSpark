@@ -3,8 +3,11 @@ import GameClient from "./GameClient";
 import LoadingSpinner from "@/app/components/LoadingSpinner";
 import { getTranslations } from "next-intl/server";
 
-export default async function GamePage({ params }: { params: { id: string } }) {
+export default async function GamePage(props: {
+  params: Promise<{ id: string }>;
+}) {
   const t = await getTranslations();
+  const { id } = await props.params;
 
   return (
     <Suspense
@@ -14,7 +17,7 @@ export default async function GamePage({ params }: { params: { id: string } }) {
         </main>
       }
     >
-      <GameClient id={params.id} />
+      <GameClient id={id} />
     </Suspense>
   );
 }
