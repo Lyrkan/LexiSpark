@@ -61,10 +61,15 @@ export function deserializeBloomFilter(
   return { m, k, buckets };
 }
 
-export function checkWord(bloomFilter: Uint8Array, word: string): boolean {
-  const { m, k, buckets } = deserializeBloomFilter(bloomFilter);
+export function checkWord(
+  bloomFilter: SerializedBloomFilter | Uint8Array,
+  word: string,
+): boolean {
+  const { m, k, buckets } =
+    bloomFilter instanceof Uint8Array
+      ? deserializeBloomFilter(bloomFilter)
+      : bloomFilter;
   const filter = new BloomFilter(m, k);
   filter.buckets = buckets;
-
   return filter.test(normalizeText(word));
 }

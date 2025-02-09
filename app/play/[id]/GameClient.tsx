@@ -1,8 +1,12 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { checkWord } from "@/lib/bloomFilter";
+import {
+  checkWord,
+  deserializeBloomFilter,
+  SerializedBloomFilter,
+} from "@/lib/bloomFilter";
 import { normalizeText } from "@/lib/textUtils";
 
 interface GameState {
@@ -86,6 +90,14 @@ export default function GameClient({ id }: { id: string }) {
   const [currentTime, setCurrentTime] = useState(Date.now());
   const wordRefs = useRef<(HTMLDivElement | null)[]>([]);
   const scrollToIndexRef = useRef<number | null>(null);
+  const deserializedBloomFilterRef = useRef<SerializedBloomFilter | null>(null);
+  const normalizedGuessedWordsRef = useRef<Set<string>>(new Set());
+
+  // Memoize the normalized current guess
+  const normalizedCurrentGuess = useMemo(
+    () => (currentGuess ? normalizeText(currentGuess) : ""),
+    [currentGuess],
+  );
 
   useEffect(() => {
     if (scrollToIndexRef.current !== null) {
@@ -101,6 +113,8 @@ export default function GameClient({ id }: { id: string }) {
   });
 
   useEffect(() => {
+    const guessedWordsSet = normalizedGuessedWordsRef.current;
+
     fetch(`/api/categories/${id}/grid${window.location.search}`)
       .then((res) => res.json())
       .then((data) => {
@@ -109,9 +123,15 @@ export default function GameClient({ id }: { id: string }) {
           return;
         }
 
+        const bloomFilter = new Uint8Array(
+          Buffer.from(data.bloomFilter, "base64"),
+        );
+        deserializedBloomFilterRef.current =
+          deserializeBloomFilter(bloomFilter);
+
         setGameState({
           wordLengths: data.wordLengths,
-          bloomFilter: new Uint8Array(Buffer.from(data.bloomFilter, "base64")),
+          bloomFilter,
           guessedWords: new Array(data.wordLengths.length).fill(null),
           startTime: Date.now(),
           endTime: null,
@@ -123,28 +143,37 @@ export default function GameClient({ id }: { id: string }) {
       .catch(() => {
         setError("Failed to load game data");
       });
+
+    return () => {
+      deserializedBloomFilterRef.current = null;
+      guessedWordsSet.clear();
+    };
   }, [id]);
 
+  // Initialize word refs only once when game state is first set
   useEffect(() => {
-    if (gameState) {
+    if (gameState && !wordRefs.current.length) {
       wordRefs.current = new Array(gameState.wordLengths.length).fill(null);
     }
   }, [gameState]);
 
   const handleGuess = useCallback(
-    async (guessToCheck: string) => {
-      if (!gameState || !guessToCheck) return;
+    async (normalizedGuess: string) => {
+      if (!gameState || !normalizedGuess || !deserializedBloomFilterRef.current)
+        return;
 
-      const normalizedGuess = normalizeText(guessToCheck);
+      // Check if word was already guessed
+      if (normalizedGuessedWordsRef.current.has(normalizedGuess)) {
+        return;
+      }
 
       // Check the word against the bloom filter first
-      if (!checkWord(gameState.bloomFilter, normalizedGuess)) {
+      if (!checkWord(deserializedBloomFilterRef.current, normalizedGuess)) {
         return;
       }
 
       // If the bloom filter says it might exist, check with the server
       try {
-        // For hidden daily challenge, always use the original ID to prevent exposing the actual category
         const categoryIdToUse =
           id === "hidden-daily" ? id : gameState.categoryId || id;
         const response = await fetch(
@@ -159,6 +188,7 @@ export default function GameClient({ id }: { id: string }) {
         const data = await response.json();
 
         if (data.found) {
+          normalizedGuessedWordsRef.current.add(normalizedGuess);
           setGameState((prev) => {
             if (!prev) return prev;
             const newGuessedWords = [...prev.guessedWords];
@@ -184,27 +214,18 @@ export default function GameClient({ id }: { id: string }) {
   );
 
   useEffect(() => {
-    // Check the current guess against the bloom filter and API whenever it changes
     if (
-      currentGuess &&
+      normalizedCurrentGuess &&
       gameState &&
-      checkWord(gameState.bloomFilter, normalizeText(currentGuess))
+      deserializedBloomFilterRef.current &&
+      checkWord(deserializedBloomFilterRef.current, normalizedCurrentGuess)
     ) {
-      // Skip if the word has already been guessed
-      const normalizedGuess = normalizeText(currentGuess);
-      const isAlreadyGuessed = gameState.guessedWords.some(
-        (word) => word !== null && normalizeText(word) === normalizedGuess,
-      );
-
-      if (!isAlreadyGuessed) {
-        handleGuess(currentGuess);
-      }
+      handleGuess(normalizedCurrentGuess);
     }
-  }, [currentGuess, gameState, handleGuess]);
+  }, [normalizedCurrentGuess, gameState, handleGuess]);
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
-      // Ignore if game is complete or if typing in the game input
       if (
         gameState?.endTime ||
         e.target instanceof HTMLInputElement ||
@@ -216,7 +237,6 @@ export default function GameClient({ id }: { id: string }) {
       if (e.key === "Backspace") {
         setCurrentGuess((prev) => prev.slice(0, -1));
       } else if (e.key.length === 1) {
-        // Allow any letter (including accented ones) but normalize it immediately
         const normalized = normalizeText(e.key);
         if (normalized) {
           setCurrentGuess((prev) => prev + normalized);
@@ -228,14 +248,18 @@ export default function GameClient({ id }: { id: string }) {
     return () => window.removeEventListener("keydown", handleKeyPress);
   }, [gameState?.endTime]);
 
+  // Optimize timer updates using requestAnimationFrame
   useEffect(() => {
     if (!gameState || gameState.endTime) return;
 
-    const timer = setInterval(() => {
+    let animationFrameId: number;
+    const updateTimer = () => {
       setCurrentTime(Date.now());
-    }, 1000);
+      animationFrameId = requestAnimationFrame(updateTimer);
+    };
 
-    return () => clearInterval(timer);
+    animationFrameId = requestAnimationFrame(updateTimer);
+    return () => cancelAnimationFrame(animationFrameId);
   }, [gameState]);
 
   if (error) {
@@ -285,7 +309,7 @@ export default function GameClient({ id }: { id: string }) {
               ref={(el) => {
                 if (el) wordRefs.current[index] = el;
               }}
-              className={`p-4 rounded-xl shadow-lg transition-all duration-300 transform ${
+              className={`p-4 rounded-xl shadow-lg transition-all duration-300 transform h-14 flex items-center justify-center ${
                 gameState.lastGuessedIndex === index
                   ? "animate-bounce bg-gradient-to-r from-emerald-100 to-teal-100"
                   : "bg-white/80 backdrop-blur-sm hover:shadow-xl hover:scale-102"
@@ -293,20 +317,27 @@ export default function GameClient({ id }: { id: string }) {
               style={{ minWidth: `${Math.max(length * 1.2 + 2, 3)}rem` }}
             >
               {gameState.guessedWords[index] ? (
-                <div className="h-6 flex items-center justify-center">
-                  <span className="text-lg font-medium text-emerald-700">
-                    {gameState.guessedWords[index]}
-                  </span>
-                </div>
+                <span
+                  className="text-lg font-medium text-emerald-700 font-mono"
+                  style={{
+                    letterSpacing: "0.3rem",
+                    display: "inline-block",
+                    textAlign: "center",
+                  }}
+                >
+                  {gameState.guessedWords[index]}
+                </span>
               ) : (
-                <div className="h-6 flex gap-1 justify-center items-center">
-                  {Array.from({ length }).map((_, i) => (
-                    <div
-                      key={i}
-                      className="w-4 h-4 border-b-2 border-gray-300"
-                    />
-                  ))}
-                </div>
+                <div
+                  style={{
+                    width: `${length * 1.3 - 0.3}rem`,
+                    height: "1rem",
+                    backgroundImage: `repeating-linear-gradient(to right, #d1d5db, #d1d5db 1rem, transparent 1rem, transparent 1.3rem)`,
+                    backgroundSize: `1.3rem 2px`,
+                    backgroundPosition: `0 100%`,
+                    backgroundRepeat: "repeat-x",
+                  }}
+                />
               )}
             </div>
           ))}
