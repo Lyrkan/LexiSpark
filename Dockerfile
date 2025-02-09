@@ -34,7 +34,7 @@ RUN mkdir -p /home/nextjs && chown nextjs:nodejs /home/nextjs
 
 # Copy only the necessary files from builder
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/next.config.ts ./
+COPY --from=builder --chown=nextjs:nodejs /app/next.config.mjs ./
 COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 
@@ -54,10 +54,10 @@ RUN chown -R nextjs:nodejs /app/prisma/db
 
 # Create startup script
 RUN echo '#!/bin/bash\n\
-npx prisma migrate deploy\n\
-npm run load-words\n\
-exec node server.js' > ./start.sh && \
-chmod +x ./start.sh
+    npx prisma migrate deploy\n\
+    npm run load-words\n\
+    exec node server.js' > ./start.sh && \
+    chmod +x ./start.sh
 
 # Set the correct permission for prerender cache
 RUN mkdir -p .next
