@@ -12,6 +12,7 @@ import {
   FolderIcon,
   ChevronRightIcon,
 } from "@heroicons/react/24/outline";
+import LoadingSpinner from "@/app/components/LoadingSpinner";
 
 interface Category {
   id?: number;
@@ -206,13 +207,12 @@ function CategoryCard({
   );
 }
 
-function HomeContent() {
+function CategoriesSection({ selectedLanguage }: { selectedLanguage: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedLanguage, setSelectedLanguage] = useState("en");
   const [selectedParent, setSelectedParent] = useState<Category | null>(null);
 
   // Load categories when language changes
@@ -252,19 +252,87 @@ function HomeContent() {
 
   if (loading) {
     return (
-      <main className="min-h-screen p-8 flex items-center justify-center">
-        <div className="text-xl">Loading categories...</div>
-      </main>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <LoadingSpinner message="Loading categories..." />
+      </div>
     );
   }
 
   if (error) {
     return (
-      <main className="min-h-screen p-8 flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-xl text-red-500">{error}</div>
-      </main>
+      </div>
     );
   }
+
+  return (
+    <div className="max-w-2xl mx-auto">
+      {selectedParent ? (
+        <>
+          <div className="mb-8">
+            <button
+              onClick={() => router.push("/")}
+              className="text-indigo-600 hover:text-indigo-800 flex items-center gap-2 font-medium transition-all px-4 py-2 rounded-xl hover:bg-white/50 hover:scale-105"
+            >
+              <span className="text-2xl">←</span>
+              <span>Back to categories</span>
+            </button>
+          </div>
+          <div className="space-y-6">
+            {(
+              selectedParent.children ||
+              selectedParent.subcategories ||
+              []
+            ).map((category, index) => (
+              <CategoryCard
+                key={index}
+                category={category}
+                allCategories={categories}
+                selectedLanguage={selectedLanguage}
+              />
+            ))}
+          </div>
+        </>
+      ) : (
+        <div className="space-y-12">
+          {/* Special Categories */}
+          <div className="space-y-6">
+            {categories
+              .filter((category) => category.isSpecial)
+              .map((category, index) => (
+                <CategoryCard
+                  key={`special-${index}`}
+                  category={category}
+                  onClick={() => handleParentClick(category)}
+                  allCategories={categories}
+                  selectedLanguage={selectedLanguage}
+                />
+              ))}
+          </div>
+
+          {/* Regular Categories */}
+          <div className="space-y-6">
+            {categories
+              .filter((category) => !category.isSpecial)
+              .map((category, index) => (
+                <CategoryCard
+                  key={`regular-${index}`}
+                  category={category}
+                  onClick={() => handleParentClick(category)}
+                  allCategories={categories}
+                  selectedLanguage={selectedLanguage}
+                />
+              ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function HomeContent() {
+  const [selectedLanguage, setSelectedLanguage] = useState("en");
 
   return (
     <main className="min-h-screen p-8">
@@ -306,67 +374,7 @@ function HomeContent() {
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto">
-        {selectedParent ? (
-          <>
-            <div className="mb-8">
-              <button
-                onClick={() => router.push("/")}
-                className="text-indigo-600 hover:text-indigo-800 flex items-center gap-2 font-medium transition-all px-4 py-2 rounded-xl hover:bg-white/50 hover:scale-105"
-              >
-                <span className="text-2xl">←</span>
-                <span>Back to categories</span>
-              </button>
-            </div>
-            <div className="space-y-6">
-              {(
-                selectedParent.children ||
-                selectedParent.subcategories ||
-                []
-              ).map((category, index) => (
-                <CategoryCard
-                  key={index}
-                  category={category}
-                  allCategories={categories}
-                  selectedLanguage={selectedLanguage}
-                />
-              ))}
-            </div>
-          </>
-        ) : (
-          <div className="space-y-12">
-            {/* Special Categories */}
-            <div className="space-y-6">
-              {categories
-                .filter((category) => category.isSpecial)
-                .map((category, index) => (
-                  <CategoryCard
-                    key={`special-${index}`}
-                    category={category}
-                    onClick={() => handleParentClick(category)}
-                    allCategories={categories}
-                    selectedLanguage={selectedLanguage}
-                  />
-                ))}
-            </div>
-
-            {/* Regular Categories */}
-            <div className="space-y-6">
-              {categories
-                .filter((category) => !category.isSpecial)
-                .map((category, index) => (
-                  <CategoryCard
-                    key={`regular-${index}`}
-                    category={category}
-                    onClick={() => handleParentClick(category)}
-                    allCategories={categories}
-                    selectedLanguage={selectedLanguage}
-                  />
-                ))}
-            </div>
-          </div>
-        )}
-      </div>
+      <CategoriesSection selectedLanguage={selectedLanguage} />
     </main>
   );
 }
@@ -376,7 +384,7 @@ export default function Home() {
     <Suspense
       fallback={
         <main className="min-h-screen p-8 flex items-center justify-center">
-          <div className="text-xl">Loading...</div>
+          <LoadingSpinner message="Loading..." />
         </main>
       }
     >

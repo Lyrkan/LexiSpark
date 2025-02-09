@@ -8,6 +8,7 @@ import {
   SerializedBloomFilter,
 } from "@/lib/bloomFilter";
 import { normalizeText } from "@/lib/textUtils";
+import LoadingSpinner from "@/app/components/LoadingSpinner";
 
 interface GameState {
   wordLengths: number[];
@@ -273,7 +274,7 @@ export default function GameClient({ id }: { id: string }) {
   if (!gameState) {
     return (
       <main className="min-h-screen p-8 flex items-center justify-center">
-        <div className="text-xl">Loading game...</div>
+        <LoadingSpinner message="Loading game..." />
       </main>
     );
   }

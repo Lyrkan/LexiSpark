@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import GameClient from "./GameClient";
+import LoadingSpinner from "@/app/components/LoadingSpinner";
 
 export default async function GamePage({
   params,
@@ -12,7 +13,7 @@ export default async function GamePage({
     <Suspense
       fallback={
         <main className="min-h-screen p-8 flex items-center justify-center">
-          <div className="text-xl">Loading game...</div>
+          <LoadingSpinner message="Loading game..." />
         </main>
       }
     >
