@@ -12,11 +12,43 @@
         }
       },
       {
+        "name": "Words Ending in -ion",
+        "description": "Find words that end with 'ion'",
+        "rules": {
+          "type": "ends_with",
+          "params": { "suffix": "ion" }
+        }
+      },
+      {
+        "name": "Words Containing 'ch'",
+        "description": "Can you find words containing the letters 'ch' together?",
+        "rules": {
+          "type": "contains",
+          "params": { "pattern": "ch" }
+        }
+      },
+      {
         "name": "Words Containing 'ea'",
         "description": "Can you find words containing the letters 'ea' together?",
         "rules": {
           "type": "contains",
           "params": { "pattern": "ea" }
+        }
+      },
+      {
+        "name": "Words Containing 'lo'",
+        "description": "Can you find words containing the letters 'lo' together?",
+        "rules": {
+          "type": "contains",
+          "params": { "pattern": "lo" }
+        }
+      },
+      {
+        "name": "Words Containing 'vi'",
+        "description": "Can you find words containing the letters 'vi' together?",
+        "rules": {
+          "type": "contains",
+          "params": { "pattern": "vi" }
         }
       }
     ]

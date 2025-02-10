@@ -12,11 +12,51 @@
         }
       },
       {
+        "name": "Mots se terminant par -eur",
+        "description": "Trouvez des mots qui se terminent par 'eur'",
+        "rules": {
+          "type": "ends_with",
+          "params": { "suffix": "eur" }
+        }
+      },
+      {
+        "name": "Mots se terminant par -ion",
+        "description": "Trouvez des mots qui se terminent par 'ion'",
+        "rules": {
+          "type": "ends_with",
+          "params": { "suffix": "ion" }
+        }
+      },
+      {
         "name": "Mots contenant 'ai'",
         "description": "Pouvez-vous trouver des mots contenant les lettres 'ai' ensemble?",
         "rules": {
           "type": "contains",
           "params": { "pattern": "ai" }
+        }
+      },
+      {
+        "name": "Mots contenant 'eu'",
+        "description": "Pouvez-vous trouver des mots contenant les lettres 'eu' ensemble?",
+        "rules": {
+          "type": "contains",
+          "params": { "pattern": "eu" }
+        }
+      },
+      {
+        "name": "Mots contenant 'lo'",
+        "description": "Pouvez-vous trouver des mots contenant les lettres 'lo' ensemble?",
+        "rules": {
+          "type": "contains",
+          "params": { "pattern": "lo" }
+        }
+      },
+      {
+        "name": "Mots contenant 'vi'",
+        "description": "Pouvez-vous trouver des mots contenant les lettres 'vi' ensemble?",
+        "rules": {
+          "type": "contains",
+          "params": { "pattern": "vi" }
         }
       }
     ]
