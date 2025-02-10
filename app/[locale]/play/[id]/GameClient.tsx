@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useMemo, memo } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { normalizeText } from "@/lib/textUtils";
@@ -10,6 +10,9 @@ import {
   SerializedBloomFilter,
 } from "@/lib/bloomFilter";
 import LoadingSpinner from "@/app/components/LoadingSpinner";
+import VictoryModal from "@/app/components/VictoryModal";
+import WordGridItem from "@/app/components/WordGridItem";
+import TimerDisplay from "@/app/components/TimerDisplay";
 
 interface GameState {
   wordLengths: number[];
@@ -21,171 +24,6 @@ interface GameState {
   categoryId?: number;
   lastGuessedIndex?: number;
 }
-
-interface VictoryModalProps {
-  categoryName: string;
-  wordCount: number;
-  timeTaken: number;
-  onBackToMenu: () => void;
-}
-
-const VictoryModal = memo(
-  ({ categoryName, wordCount, timeTaken, onBackToMenu }: VictoryModalProps) => {
-    const t = useTranslations();
-    return (
-      <div className="fixed inset-0 bg-gradient-to-br from-indigo-900/90 via-purple-900/90 to-pink-900/90 backdrop-blur-md flex items-center justify-center p-4 z-50">
-        <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-10 max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/20">
-          <div className="text-center mb-10">
-            <div className="text-6xl mb-4">🎉</div>
-            <h2 className="text-4xl font-black mb-4 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600">
-              {t("victory.title")}
-            </h2>
-            <p className="text-xl text-gray-700">
-              {categoryName === "Hidden Daily Challenge" ? (
-                <>
-                  {t("victory.completedHiddenDaily.title")}
-                  <br />
-                  <span className="text-lg text-gray-500">
-                    {t("victory.completedHiddenDaily.subtitle")}
-                  </span>
-                </>
-              ) : (
-                <>
-                  {t("victory.completedCategory", { category: categoryName })}
-                </>
-              )}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-6 mb-10">
-            <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 p-6 rounded-2xl text-center transform hover:scale-105 transition-transform">
-              <div className="text-4xl font-black text-indigo-700 mb-1">
-                {wordCount}
-              </div>
-              <div className="text-indigo-600 font-medium">
-                {t("game.wordsFound")}
-              </div>
-            </div>
-            <div className="bg-gradient-to-br from-pink-50 to-pink-100 p-6 rounded-2xl text-center transform hover:scale-105 transition-transform">
-              <div className="text-4xl font-black text-pink-700 mb-1">
-                {Math.floor(timeTaken / 1000)}s
-              </div>
-              <div className="text-pink-600 font-medium">{t("game.time")}</div>
-            </div>
-          </div>
-
-          <button
-            onClick={onBackToMenu}
-            className="w-full px-8 py-4 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white rounded-2xl hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 transition-all transform hover:scale-105 font-medium shadow-xl"
-          >
-            {t("navigation.backToMenu")}
-          </button>
-        </div>
-      </div>
-    );
-  },
-);
-VictoryModal.displayName = "VictoryModal";
-
-const WordGridItem = memo(
-  ({
-    length,
-    word,
-    isLastGuessed,
-    ref,
-  }: {
-    length: number;
-    word: string | null;
-    isLastGuessed: boolean;
-    ref: (el: HTMLDivElement | null) => void;
-  }) => (
-    <div
-      ref={ref}
-      className={`p-2 sm:p-4 rounded-xl shadow-lg transition-all duration-300 transform h-10 sm:h-14 flex items-center justify-center ${
-        isLastGuessed
-          ? "animate-guessed-word bg-gradient-to-r from-emerald-100 to-teal-100"
-          : "bg-white/80 backdrop-blur-sm hover:shadow-xl hover:scale-102"
-      }`}
-      style={{
-        minWidth: `${Math.max(length * 1.1 + 1.5, 2.5)}rem`,
-      }}
-    >
-      {word ? (
-        <span
-          className="sm:text-lg text-base font-medium text-emerald-700 font-mono"
-          style={{
-            letterSpacing: "0.25rem",
-            display: "inline-block",
-            textAlign: "center",
-            fontFamily: "var(--font-geist-mono)",
-          }}
-        >
-          {word}
-        </span>
-      ) : (
-        <div
-          style={{
-            width: `${length * 1.1 - 0.2}rem`,
-            height: "0.8rem",
-            backgroundImage: `repeating-linear-gradient(to right, #d1d5db, #d1d5db 0.8rem, transparent 0.8rem, transparent 1.1rem)`,
-            backgroundSize: `1.1rem 2px`,
-            backgroundPosition: `0 100%`,
-            backgroundRepeat: "repeat-x",
-          }}
-        />
-      )}
-    </div>
-  ),
-);
-WordGridItem.displayName = "WordGridItem";
-
-const TimerDisplay = memo(
-  ({
-    startTime,
-    endTime,
-    wordLengths,
-    guessedWords,
-  }: {
-    startTime: number;
-    endTime: number | null;
-    wordLengths: number[];
-    guessedWords: (string | null)[];
-  }) => {
-    const t = useTranslations();
-    const [currentTime, setCurrentTime] = useState(Date.now());
-
-    useEffect(() => {
-      if (endTime) return;
-
-      const intervalId = setInterval(() => {
-        setCurrentTime(Date.now());
-      }, 1000);
-
-      return () => clearInterval(intervalId);
-    }, [endTime]);
-
-    return (
-      <div className="flex flex-col items-end sm:gap-1 gap-0 min-w-[4.5rem] md:min-w-[8rem]">
-        <div className="sm:text-xl text-lg font-bold whitespace-nowrap bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600">
-          {Math.floor(((endTime || currentTime) - startTime) / 1000)}s
-        </div>
-        <div className="sm:text-sm text-sm text-gray-600 whitespace-nowrap font-medium">
-          <span className="md:inline hidden">
-            {t("game.wordsRemaining", {
-              count:
-                wordLengths.length -
-                guessedWords.filter((w) => w !== null).length,
-            })}
-          </span>
-          <span className="md:hidden inline">
-            {guessedWords.filter((w) => w !== null).length}/{wordLengths.length}
-          </span>
-        </div>
-      </div>
-    );
-  },
-);
-TimerDisplay.displayName = "TimerDisplay";
 
 export default function GameClient({ id }: { id: string }) {
   const router = useRouter();
