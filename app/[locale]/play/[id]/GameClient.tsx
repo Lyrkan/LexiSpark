@@ -139,6 +139,54 @@ const WordGridItem = memo(
 );
 WordGridItem.displayName = "WordGridItem";
 
+const TimerDisplay = memo(
+  ({
+    startTime,
+    endTime,
+    wordLengths,
+    guessedWords,
+  }: {
+    startTime: number;
+    endTime: number | null;
+    wordLengths: number[];
+    guessedWords: (string | null)[];
+  }) => {
+    const t = useTranslations();
+    const [currentTime, setCurrentTime] = useState(Date.now());
+
+    useEffect(() => {
+      if (endTime) return;
+
+      const intervalId = setInterval(() => {
+        setCurrentTime(Date.now());
+      }, 1000);
+
+      return () => clearInterval(intervalId);
+    }, [endTime]);
+
+    return (
+      <div className="flex flex-col items-end sm:gap-1 gap-0 min-w-[4.5rem] md:min-w-[8rem]">
+        <div className="sm:text-xl text-lg font-bold whitespace-nowrap bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600">
+          {Math.floor(((endTime || currentTime) - startTime) / 1000)}s
+        </div>
+        <div className="sm:text-sm text-sm text-gray-600 whitespace-nowrap font-medium">
+          <span className="md:inline hidden">
+            {t("game.wordsRemaining", {
+              count:
+                wordLengths.length -
+                guessedWords.filter((w) => w !== null).length,
+            })}
+          </span>
+          <span className="md:hidden inline">
+            {guessedWords.filter((w) => w !== null).length}/{wordLengths.length}
+          </span>
+        </div>
+      </div>
+    );
+  },
+);
+TimerDisplay.displayName = "TimerDisplay";
+
 export default function GameClient({ id }: { id: string }) {
   const router = useRouter();
   const params = useParams();
@@ -147,7 +195,6 @@ export default function GameClient({ id }: { id: string }) {
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [currentGuess, setCurrentGuess] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [currentTime, setCurrentTime] = useState(Date.now());
   const wordRefs = useRef<(HTMLDivElement | null)[]>([]);
   const scrollToIndexRef = useRef<number | null>(null);
   const deserializedBloomFilterRef = useRef<SerializedBloomFilter | null>(null);
@@ -197,7 +244,6 @@ export default function GameClient({ id }: { id: string }) {
           categoryName: data.categoryName,
           categoryId: data.categoryId,
         });
-        setCurrentTime(Date.now());
       })
       .catch(() => {
         setError(t("app.error.failedToLoadGame"));
@@ -320,18 +366,6 @@ export default function GameClient({ id }: { id: string }) {
     return () => window.removeEventListener("keydown", handleKeyPress);
   }, [gameState?.endTime]);
 
-  // Update timer every second
-  useEffect(() => {
-    if (!gameState || gameState.endTime) return;
-
-    // Update time display every second
-    const intervalId = setInterval(() => {
-      setCurrentTime(Date.now());
-    }, 1000);
-
-    return () => clearInterval(intervalId);
-  }, [gameState]);
-
   // Memoize the word grid to prevent unnecessary re-renders
   const wordGrid = useMemo(
     () => (
@@ -355,34 +389,6 @@ export default function GameClient({ id }: { id: string }) {
       gameState?.lastGuessedIndex,
     ],
   );
-
-  const timerDisplay = useMemo(() => {
-    if (!gameState) return null;
-
-    return (
-      <div className="flex flex-col items-end sm:gap-1 gap-0 min-w-[4.5rem] md:min-w-[8rem]">
-        <div className="sm:text-xl text-lg font-bold whitespace-nowrap bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600">
-          {Math.floor(
-            ((gameState.endTime || currentTime) - gameState.startTime) / 1000,
-          )}
-          s
-        </div>
-        <div className="sm:text-sm text-sm text-gray-600 whitespace-nowrap font-medium">
-          <span className="md:inline hidden">
-            {t("game.wordsRemaining", {
-              count:
-                gameState.wordLengths.length -
-                gameState.guessedWords.filter((w) => w !== null).length,
-            })}
-          </span>
-          <span className="md:hidden inline">
-            {gameState.guessedWords.filter((w) => w !== null).length}/
-            {gameState.wordLengths.length}
-          </span>
-        </div>
-      </div>
-    );
-  }, [gameState, currentTime, t]);
 
   if (error) {
     return (
@@ -451,7 +457,12 @@ export default function GameClient({ id }: { id: string }) {
               />
             </div>
 
-            {timerDisplay}
+            <TimerDisplay
+              startTime={gameState.startTime}
+              endTime={gameState.endTime}
+              wordLengths={gameState.wordLengths}
+              guessedWords={gameState.guessedWords}
+            />
           </div>
         </div>
       </div>
