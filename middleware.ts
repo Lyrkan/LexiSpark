@@ -15,5 +15,9 @@ export default createMiddleware({
 });
 
 export const config = {
-  matcher: ["/((?!api|_next|favicon.ico|robots.txt|.*\\..*).*)"],
+  // Match all routes except:
+  // - /api (API routes)
+  // - /_next (Next.js internals)
+  // - all files with extensions
+  matcher: ["/((?!api|_next|.*\\.[^/]*$).*)"],
 };
