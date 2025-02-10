@@ -245,7 +245,7 @@ export default function GameClient({ id }: { id: string }) {
   }
 
   return (
-    <main className="min-h-screen p-8 pb-32 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-100 animate-gradient-slow">
+    <main className="min-h-screen p-8 pb-32 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-100">
       {gameState.endTime && (
         <VictoryModal
           categoryName={gameState.categoryName || "Unknown Category"}
