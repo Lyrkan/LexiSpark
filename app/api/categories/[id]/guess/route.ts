@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getDailyNumber } from "@/lib/daily";
 import { prisma } from "@/lib/prisma";
+import { DEFAULT_LOCALE } from "@/i18n/request";
 
 export async function POST(
   request: Request,
@@ -15,7 +16,7 @@ export async function POST(
 
     // Get the language from the request URL
     const { searchParams } = new URL(request.url);
-    const language = searchParams.get("language") || "en";
+    const language = searchParams.get("language") || DEFAULT_LOCALE;
 
     // Handle special IDs
     if (id === "daily" || id === "hidden-daily" || id === "random") {
@@ -117,7 +118,14 @@ export async function POST(
       displayWord: result.words[0].word,
     });
   } catch (error) {
-    console.error("Failed to verify guess:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    const errorStack = error instanceof Error ? error.stack : undefined;
+
+    console.error("Failed to verify guess:", {
+      message: errorMessage,
+      stack: errorStack,
+    });
     return NextResponse.json(
       { error: "Failed to verify guess" },
       { status: 500 },

@@ -75,10 +75,10 @@
       },
       {
         "name": "Mots longs",
-        "description": "Trouvez les mots qui ont 8 lettres ou plus",
+        "description": "Trouvez les mots qui ont 11 lettres ou plus",
         "rules": {
           "type": "min_length",
-          "params": { "length": 8 }
+          "params": { "length": 11 }
         }
       }
     ]

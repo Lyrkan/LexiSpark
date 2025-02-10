@@ -212,7 +212,14 @@ export default function GameClient({ id }: { id: string }) {
         });
         setCurrentGuess("");
       } catch (error) {
-        console.error("Failed to verify word:", error);
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error";
+        const errorStack = error instanceof Error ? error.stack : undefined;
+
+        console.error("Failed to verify word:", {
+          message: errorMessage,
+          stack: errorStack,
+        });
       }
     },
     [gameState, id, currentLocale],
@@ -226,7 +233,14 @@ export default function GameClient({ id }: { id: string }) {
       checkWord(deserializedBloomFilterRef.current, normalizedCurrentGuess)
     ) {
       handleGuess(normalizedCurrentGuess).catch((error) => {
-        console.error("Failed to handle guess:", error);
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error";
+        const errorStack = error instanceof Error ? error.stack : undefined;
+
+        console.error("Failed to handle guess:", {
+          message: errorMessage,
+          stack: errorStack,
+        });
       });
     }
   }, [normalizedCurrentGuess, gameState, handleGuess]);

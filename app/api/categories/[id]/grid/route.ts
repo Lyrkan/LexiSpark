@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getDailyNumber } from "@/lib/daily";
 import { prisma } from "@/lib/prisma";
-
+import { DEFAULT_LOCALE } from "@/i18n/request";
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -15,7 +15,7 @@ export async function GET(
 
     // Get the language from the request URL
     const { searchParams } = new URL(request.url);
-    const language = searchParams.get("language") || "en";
+    const language = searchParams.get("language") || DEFAULT_LOCALE;
 
     // Get all valid categories for special IDs handling
     const getValidCategoriesForLanguage = async (lang: string) => {
@@ -136,12 +136,11 @@ export async function GET(
       ...(isHiddenDaily ? {} : { categoryId: category.id }),
     });
   } catch (error) {
-    console.error("Failed to fetch grid information:", error);
-    // More detailed error information
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
     const errorStack = error instanceof Error ? error.stack : undefined;
-    console.error("Error details:", {
+
+    console.error("Failed to fetch grid information:", {
       message: errorMessage,
       stack: errorStack,
     });

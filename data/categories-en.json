@@ -75,10 +75,10 @@
       },
       {
         "name": "Long Words",
-        "description": "Find words that are 8 letters or longer",
+        "description": "Find words that are 10 letters or longer",
         "rules": {
           "type": "min_length",
-          "params": { "length": 8 }
+          "params": { "length": 10 }
         }
       }
     ]

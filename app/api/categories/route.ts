@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-
+import { DEFAULT_LOCALE } from "@/i18n/request";
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const language = searchParams.get("language") || "en";
+    const language = searchParams.get("language") || DEFAULT_LOCALE;
 
     // Get root categories (those without parents)
     const categories = await prisma.category.findMany({

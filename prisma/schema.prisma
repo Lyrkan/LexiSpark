@@ -19,6 +19,7 @@ model Word {
   @@unique([word, language])
   @@unique([normalized, language])
   @@index([language])
+  @@index([normalized(sort: Asc)])
 }
 
 model Category {
