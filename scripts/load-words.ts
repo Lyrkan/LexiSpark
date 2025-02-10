@@ -64,30 +64,15 @@ async function updateCategory(
   if (category.subcategories) {
     // First check if any subcategories have words
     let hasValidSubcategories = false;
-    for (const subcategory of category.subcategories) {
-      const subcategoryHasWords = await updateCategory(
-        subcategory,
-        language,
-        words,
-        parentId,
-      );
-      if (subcategoryHasWords) {
-        hasValidSubcategories = true;
-      }
-    }
 
-    // If no subcategories have words, skip this parent category
-    if (!hasValidSubcategories) {
-      console.log(
-        `Skipping parent category ${category.name} as it has no valid subcategories with words`,
-      );
-      return false;
-    }
-
+    // Find or create the parent category first
     const existingCategory = await prisma.category.findFirst({
       where: {
         name: category.name,
         language: language,
+      },
+      include: {
+        children: true,
       },
     });
 
@@ -103,8 +88,12 @@ async function updateCategory(
         },
       }));
 
-    // Update parent category if it exists
-    if (existingCategory) {
+    // Update parent category if it exists and needs updates
+    if (
+      existingCategory &&
+      (existingCategory.description !== category.description ||
+        existingCategory.parentId !== parentId)
+    ) {
       await prisma.category.update({
         where: { id: existingCategory.id },
         data: {
@@ -114,15 +103,31 @@ async function updateCategory(
       });
     }
 
-    // Remove subcategories that no longer exist
-    const validSubcategoryNames = category.subcategories.map((sub) => sub.name);
-    await prisma.category.deleteMany({
-      where: {
-        parentId: parent.id,
-        name: { notIn: validSubcategoryNames },
-        language: language,
-      },
-    });
+    // Process all subcategories
+    for (const subcategory of category.subcategories) {
+      const subcategoryHasWords = await updateCategory(
+        subcategory,
+        language,
+        words,
+        parent.id, // Pass the parent's ID to establish the relationship
+      );
+      if (subcategoryHasWords) {
+        hasValidSubcategories = true;
+      }
+    }
+
+    // If no subcategories have words, remove this parent category
+    if (!hasValidSubcategories) {
+      console.log(
+        `Removing parent category ${category.name} as it has no valid subcategories with words`,
+      );
+      if (existingCategory) {
+        await prisma.category.delete({
+          where: { id: existingCategory.id },
+        });
+      }
+      return false;
+    }
 
     return true;
   }
@@ -176,7 +181,11 @@ async function updateCategory(
     },
   });
 
-  if (existingCategory && existingCategory.contentHash === expectedHash) {
+  if (
+    existingCategory &&
+    existingCategory.contentHash === expectedHash &&
+    existingCategory.parentId === parentId
+  ) {
     console.log(`Category ${category.name} is up to date, skipping...`);
     return true;
   }
