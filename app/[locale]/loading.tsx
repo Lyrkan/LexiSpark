@@ -6,7 +6,7 @@ import LoadingSpinner from "../components/LoadingSpinner";
 export default function Loading() {
   const t = useTranslations();
   return (
-    <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center">
+    <div className="fixed inset-0 flex items-center justify-center">
       <LoadingSpinner message={t("app.loading")} />
     </div>
   );

@@ -3,20 +3,14 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
+  --background: linear-gradient(to bottom right, #eef2ff, #f5f3ff, #fce7f3);
   --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
+  background-attachment: fixed;
   font-family: Arial, Helvetica, sans-serif;
 }
 

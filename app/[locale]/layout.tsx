@@ -38,7 +38,7 @@ export default async function LocaleLayout({
 
   return (
     <div
-      className={`${geistSans.variable} ${geistMono.variable} ${righteous.variable} antialiased bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-100`}
+      className={`${geistSans.variable} ${geistMono.variable} ${righteous.variable} antialiased`}
     >
       <NextIntlClientProvider messages={messages} locale={locale}>
         {children}
