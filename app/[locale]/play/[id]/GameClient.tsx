@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useMemo } from "react";
+import { useEffect, useState, useRef, useMemo, memo } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { normalizeText } from "@/lib/textUtils";
@@ -29,63 +29,115 @@ interface VictoryModalProps {
   onBackToMenu: () => void;
 }
 
-function VictoryModal({
-  categoryName,
-  wordCount,
-  timeTaken,
-  onBackToMenu,
-}: VictoryModalProps) {
-  const t = useTranslations();
-  return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 z-50">
-      <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-10 max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/20">
-        <div className="text-center mb-10">
-          <div className="text-6xl mb-4">🎉</div>
-          <h2 className="text-4xl font-black mb-4 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600">
-            {t("victory.title")}
-          </h2>
-          <p className="text-xl text-gray-700">
-            {categoryName === "Hidden Daily Challenge" ? (
-              <>
-                {t("victory.completedHiddenDaily.title")}
-                <br />
-                <span className="text-lg text-gray-500">
-                  {t("victory.completedHiddenDaily.subtitle")}
-                </span>
-              </>
-            ) : (
-              <>{t("victory.completedCategory", { category: categoryName })}</>
-            )}
-          </p>
-        </div>
+const VictoryModal = memo(
+  ({ categoryName, wordCount, timeTaken, onBackToMenu }: VictoryModalProps) => {
+    const t = useTranslations();
+    return (
+      <div className="fixed inset-0 bg-gradient-to-br from-indigo-900/90 via-purple-900/90 to-pink-900/90 backdrop-blur-md flex items-center justify-center p-4 z-50">
+        <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-10 max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/20">
+          <div className="text-center mb-10">
+            <div className="text-6xl mb-4">🎉</div>
+            <h2 className="text-4xl font-black mb-4 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600">
+              {t("victory.title")}
+            </h2>
+            <p className="text-xl text-gray-700">
+              {categoryName === "Hidden Daily Challenge" ? (
+                <>
+                  {t("victory.completedHiddenDaily.title")}
+                  <br />
+                  <span className="text-lg text-gray-500">
+                    {t("victory.completedHiddenDaily.subtitle")}
+                  </span>
+                </>
+              ) : (
+                <>
+                  {t("victory.completedCategory", { category: categoryName })}
+                </>
+              )}
+            </p>
+          </div>
 
-        <div className="grid grid-cols-2 gap-6 mb-10">
-          <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 p-6 rounded-2xl text-center transform hover:scale-105 transition-transform">
-            <div className="text-4xl font-black text-indigo-700 mb-1">
-              {wordCount}
+          <div className="grid grid-cols-2 gap-6 mb-10">
+            <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 p-6 rounded-2xl text-center transform hover:scale-105 transition-transform">
+              <div className="text-4xl font-black text-indigo-700 mb-1">
+                {wordCount}
+              </div>
+              <div className="text-indigo-600 font-medium">
+                {t("game.wordsFound")}
+              </div>
             </div>
-            <div className="text-indigo-600 font-medium">
-              {t("game.wordsFound")}
+            <div className="bg-gradient-to-br from-pink-50 to-pink-100 p-6 rounded-2xl text-center transform hover:scale-105 transition-transform">
+              <div className="text-4xl font-black text-pink-700 mb-1">
+                {Math.floor(timeTaken / 1000)}s
+              </div>
+              <div className="text-pink-600 font-medium">{t("game.time")}</div>
             </div>
           </div>
-          <div className="bg-gradient-to-br from-pink-50 to-pink-100 p-6 rounded-2xl text-center transform hover:scale-105 transition-transform">
-            <div className="text-4xl font-black text-pink-700 mb-1">
-              {Math.floor(timeTaken / 1000)}s
-            </div>
-            <div className="text-pink-600 font-medium">{t("game.time")}</div>
-          </div>
-        </div>
 
-        <button
-          onClick={onBackToMenu}
-          className="w-full px-8 py-4 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white rounded-2xl hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 transition-all transform hover:scale-105 font-medium shadow-xl"
-        >
-          {t("navigation.backToMenu")}
-        </button>
+          <button
+            onClick={onBackToMenu}
+            className="w-full px-8 py-4 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white rounded-2xl hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 transition-all transform hover:scale-105 font-medium shadow-xl"
+          >
+            {t("navigation.backToMenu")}
+          </button>
+        </div>
       </div>
+    );
+  },
+);
+VictoryModal.displayName = "VictoryModal";
+
+const WordGridItem = memo(
+  ({
+    length,
+    word,
+    isLastGuessed,
+    ref,
+  }: {
+    length: number;
+    word: string | null;
+    isLastGuessed: boolean;
+    ref: (el: HTMLDivElement | null) => void;
+  }) => (
+    <div
+      ref={ref}
+      className={`p-2 sm:p-4 rounded-xl shadow-lg transition-all duration-300 transform h-10 sm:h-14 flex items-center justify-center ${
+        isLastGuessed
+          ? "animate-guessed-word bg-gradient-to-r from-emerald-100 to-teal-100"
+          : "bg-white/80 backdrop-blur-sm hover:shadow-xl hover:scale-102"
+      }`}
+      style={{
+        minWidth: `${Math.max(length * 1.1 + 1.5, 2.5)}rem`,
+      }}
+    >
+      {word ? (
+        <span
+          className="sm:text-lg text-base font-medium text-emerald-700 font-mono"
+          style={{
+            letterSpacing: "0.25rem",
+            display: "inline-block",
+            textAlign: "center",
+            fontFamily: "var(--font-geist-mono)",
+          }}
+        >
+          {word}
+        </span>
+      ) : (
+        <div
+          style={{
+            width: `${length * 1.1 - 0.2}rem`,
+            height: "0.8rem",
+            backgroundImage: `repeating-linear-gradient(to right, #d1d5db, #d1d5db 0.8rem, transparent 0.8rem, transparent 1.1rem)`,
+            backgroundSize: `1.1rem 2px`,
+            backgroundPosition: `0 100%`,
+            backgroundRepeat: "repeat-x",
+          }}
+        />
+      )}
     </div>
-  );
-}
+  ),
+);
+WordGridItem.displayName = "WordGridItem";
 
 export default function GameClient({ id }: { id: string }) {
   const router = useRouter();
@@ -101,7 +153,6 @@ export default function GameClient({ id }: { id: string }) {
   const deserializedBloomFilterRef = useRef<SerializedBloomFilter | null>(null);
   const normalizedGuessedWordsRef = useRef<Set<string>>(new Set());
 
-  // Memoize the normalized current guess
   const normalizedCurrentGuess = useMemo(
     () => (currentGuess ? normalizeText(currentGuess) : ""),
     [currentGuess],
@@ -269,19 +320,69 @@ export default function GameClient({ id }: { id: string }) {
     return () => window.removeEventListener("keydown", handleKeyPress);
   }, [gameState?.endTime]);
 
-  // Optimize timer updates using requestAnimationFrame
+  // Update timer every second
   useEffect(() => {
     if (!gameState || gameState.endTime) return;
 
-    let animationFrameId: number;
-    const updateTimer = () => {
+    // Update time display every second
+    const intervalId = setInterval(() => {
       setCurrentTime(Date.now());
-      animationFrameId = requestAnimationFrame(updateTimer);
-    };
+    }, 1000);
 
-    animationFrameId = requestAnimationFrame(updateTimer);
-    return () => cancelAnimationFrame(animationFrameId);
+    return () => clearInterval(intervalId);
   }, [gameState]);
+
+  // Memoize the word grid to prevent unnecessary re-renders
+  const wordGrid = useMemo(
+    () => (
+      <div className="mb-8 sm:flex sm:flex-wrap sm:content-start sm:justify-between sm:gap-4 grid grid-cols-2 gap-4">
+        {gameState?.wordLengths.map((length, index) => (
+          <WordGridItem
+            key={index}
+            length={length}
+            word={gameState.guessedWords[index]}
+            isLastGuessed={gameState.lastGuessedIndex === index}
+            ref={(el) => {
+              if (el) wordRefs.current[index] = el;
+            }}
+          />
+        ))}
+      </div>
+    ),
+    [
+      gameState?.wordLengths,
+      gameState?.guessedWords,
+      gameState?.lastGuessedIndex,
+    ],
+  );
+
+  const timerDisplay = useMemo(() => {
+    if (!gameState) return null;
+
+    return (
+      <div className="flex flex-col items-end sm:gap-1 gap-0 min-w-[4.5rem] md:min-w-[8rem]">
+        <div className="sm:text-xl text-lg font-bold whitespace-nowrap bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600">
+          {Math.floor(
+            ((gameState.endTime || currentTime) - gameState.startTime) / 1000,
+          )}
+          s
+        </div>
+        <div className="sm:text-sm text-sm text-gray-600 whitespace-nowrap font-medium">
+          <span className="md:inline hidden">
+            {t("game.wordsRemaining", {
+              count:
+                gameState.wordLengths.length -
+                gameState.guessedWords.filter((w) => w !== null).length,
+            })}
+          </span>
+          <span className="md:hidden inline">
+            {gameState.guessedWords.filter((w) => w !== null).length}/
+            {gameState.wordLengths.length}
+          </span>
+        </div>
+      </div>
+    );
+  }, [gameState, currentTime, t]);
 
   if (error) {
     return (
@@ -323,57 +424,20 @@ export default function GameClient({ id }: { id: string }) {
             gameState.categoryName
           )}
         </h1>
-        <div className="mb-8 flex flex-wrap content-start justify-between gap-4">
-          {gameState.wordLengths.map((length, index) => (
-            <div
-              key={index}
-              ref={(el) => {
-                if (el) wordRefs.current[index] = el;
-              }}
-              className={`p-4 rounded-xl shadow-lg transition-all duration-300 transform h-14 flex items-center justify-center ${
-                gameState.lastGuessedIndex === index
-                  ? "animate-bounce bg-gradient-to-r from-emerald-100 to-teal-100"
-                  : "bg-white/80 backdrop-blur-sm hover:shadow-xl hover:scale-102"
-              }`}
-              style={{ minWidth: `${Math.max(length * 1.2 + 2, 3)}rem` }}
-            >
-              {gameState.guessedWords[index] ? (
-                <span
-                  className="text-lg font-medium text-emerald-700 font-mono"
-                  style={{
-                    letterSpacing: "0.3rem",
-                    display: "inline-block",
-                    textAlign: "center",
-                    fontFamily: "var(--font-geist-mono)",
-                  }}
-                >
-                  {gameState.guessedWords[index]}
-                </span>
-              ) : (
-                <div
-                  style={{
-                    width: `${length * 1.3 - 0.3}rem`,
-                    height: "1rem",
-                    backgroundImage: `repeating-linear-gradient(to right, #d1d5db, #d1d5db 1rem, transparent 1rem, transparent 1.3rem)`,
-                    backgroundSize: `1.3rem 2px`,
-                    backgroundPosition: `0 100%`,
-                    backgroundRepeat: "repeat-x",
-                  }}
-                />
-              )}
-            </div>
-          ))}
-        </div>
+        {wordGrid}
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 p-8 border-t border-white/20 shadow-2xl backdrop-blur-lg">
+      <div className="fixed bottom-0 left-0 right-0 sm:p-8 px-4 py-2 border-t border-white/20 shadow-2xl backdrop-blur-lg">
         <div className="max-w-4xl mx-auto">
-          <div className="flex items-center gap-8">
+          <div className="flex items-center sm:gap-8 gap-2">
             <button
               onClick={() => router.push("/")}
-              className="px-8 py-4 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white rounded-2xl hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 transition-all transform hover:scale-105 font-medium shadow-xl"
+              className="sm:px-4 px-4 sm:py-3 py-3 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white rounded-2xl hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 transition-all transform hover:scale-105 font-medium shadow-xl flex items-center justify-center min-w-[4.5rem] md:min-w-[8rem]"
             >
-              {t("navigation.backToMenu")}
+              <span className="md:inline hidden">
+                {t("navigation.backToMenu")}
+              </span>
+              <span className="md:hidden inline text-2xl">←</span>
             </button>
 
             <div className="flex-1">
@@ -381,29 +445,13 @@ export default function GameClient({ id }: { id: string }) {
                 type="text"
                 value={currentGuess}
                 onChange={(e) => setCurrentGuess(normalizeText(e.target.value))}
-                className="w-full p-5 text-2xl text-center border-2 rounded-2xl border-gray-200 bg-white/90 backdrop-blur-sm focus:border-indigo-400 focus:ring focus:ring-indigo-100 transition-all font-medium text-gray-800 placeholder:text-gray-400"
+                className="w-full sm:p-4 p-3 sm:text-xl text-xl text-center border-2 rounded-2xl border-gray-200 bg-white/90 backdrop-blur-sm focus:border-indigo-400 focus:ring focus:ring-indigo-100 transition-all font-medium text-gray-800 placeholder:text-gray-400"
                 placeholder={t("game.typeYourGuess")}
                 disabled={gameState.endTime !== null}
               />
             </div>
 
-            <div className="flex flex-col items-end gap-2">
-              <div className="text-2xl font-bold whitespace-nowrap bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600">
-                {t("game.time")}:{" "}
-                {Math.floor(
-                  ((gameState.endTime || currentTime) - gameState.startTime) /
-                    1000,
-                )}
-                s
-              </div>
-              <div className="text-base text-gray-600 whitespace-nowrap font-medium">
-                {t("game.wordsRemaining", {
-                  count:
-                    gameState.wordLengths.length -
-                    gameState.guessedWords.filter((w) => w !== null).length,
-                })}
-              </div>
-            </div>
+            {timerDisplay}
           </div>
         </div>
       </div>
