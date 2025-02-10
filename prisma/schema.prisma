@@ -36,6 +36,7 @@ model Category {
   parent      Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
   parentId    Int?
   children    Category[] @relation("CategoryHierarchy")
+  contentHash String?    // Hash of the category's content (words + rules)
 
   @@unique([name, language])
   @@index([language])
@@ -51,4 +52,11 @@ model Game {
   guesses    Int      @default(0)
   mistakes   Int      @default(0)
   completed  Boolean  @default(false)
+}
+
+model LanguageWordList {
+  id         Int      @id @default(autoincrement())
+  language   String   @unique
+  contentHash String  // Hash of all words in the language
+  updatedAt  DateTime @default(now())
 } 
