@@ -2,6 +2,28 @@ import { NextResponse } from "next/server";
 import { getDailyNumber } from "@/lib/daily";
 import { prisma } from "@/lib/prisma";
 import { DEFAULT_LOCALE } from "@/i18n/request";
+import { formatInTimeZone, getTimezoneOffset } from "date-fns-tz";
+
+// Helper to get the next midnight in Paris time
+function getNextMidnightParis(): Date {
+  const now = new Date();
+  const parisDate = new Date(
+    now.getTime() + getTimezoneOffset("Europe/Paris", now),
+  );
+  const nextMidnight = new Date(
+    parisDate.getFullYear(),
+    parisDate.getMonth(),
+    parisDate.getDate() + 1,
+  );
+  // Format the date in Paris timezone to ensure we get midnight Paris time
+  const nextMidnightStr = formatInTimeZone(
+    nextMidnight,
+    "Europe/Paris",
+    "yyyy-MM-dd'T'00:00:00.000XXX",
+  );
+  return new Date(nextMidnightStr);
+}
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -134,6 +156,12 @@ export async function GET(
       ).toString("base64"),
       categoryName: isHiddenDaily ? "Hidden Daily Challenge" : category.name,
       ...(isHiddenDaily ? {} : { categoryId: category.id }),
+      // Add expiration timestamp for daily challenges
+      ...(id.startsWith("daily") || id.startsWith("hidden-daily")
+        ? {
+            expiresAt: getNextMidnightParis().toISOString(),
+          }
+        : {}),
     });
   } catch (error) {
     const errorMessage =

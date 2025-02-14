@@ -9,7 +9,7 @@ import {
   useParams,
 } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { getDailyNumber } from "@/lib/daily";
+import { getGameProgress } from "@/lib/storage";
 import { GB as GBFlag, FR as FRFlag } from "country-flag-icons/react/3x2";
 import {
   CalendarDaysIcon,
@@ -18,6 +18,7 @@ import {
   FolderIcon,
   ChevronRightIcon,
 } from "@heroicons/react/24/outline";
+import CountdownTimer from "@/app/components/CountdownTimer";
 
 interface Category {
   id?: number;
@@ -41,56 +42,13 @@ interface Category {
   _count?: {
     words: number;
   };
+  expiresAt?: string;
 }
 
 const AVAILABLE_LANGUAGES = [
   { code: "en", name: "English", Flag: GBFlag },
   { code: "fr", name: "Français", Flag: FRFlag },
 ];
-
-// Special categories factory
-function createSpecialCategories(
-  categories: Category[],
-  t: (key: string) => string,
-): Category[] {
-  if (!categories.length) return [];
-
-  // Get valid categories (non-parent categories that are not special)
-  const validCategories = categories
-    .flatMap((cat) => (cat.children ? [...cat.children] : [cat]))
-    .filter((cat) => !cat.isParent && !cat.isSpecial && cat.id !== undefined);
-
-  if (!validCategories.length) return [];
-
-  const dailyIndex = getDailyNumber("daily") % validCategories.length;
-  const hiddenDailyIndex = getDailyNumber("hidden") % validCategories.length;
-
-  const specialCategories: Category[] = [
-    {
-      id: validCategories[dailyIndex].id,
-      specialId: "daily",
-      name: t("specialCategories.daily.name"),
-      description: t("specialCategories.daily.description"),
-      isSpecial: true,
-    },
-    {
-      id: validCategories[hiddenDailyIndex].id,
-      specialId: "hidden-daily",
-      name: t("specialCategories.hiddenDaily.name"),
-      description: t("specialCategories.hiddenDaily.description"),
-      isSpecial: true,
-      isHiddenDaily: true,
-    },
-    {
-      specialId: "random",
-      name: t("specialCategories.random.name"),
-      description: t("specialCategories.random.description"),
-      isSpecial: true,
-    },
-  ];
-
-  return specialCategories;
-}
 
 function CategoryCard({
   category,
@@ -103,6 +61,38 @@ function CategoryCard({
   allCategories?: Category[];
   selectedLanguage: string;
 }) {
+  const [progress, setProgress] = useState<{
+    completed: number;
+    total: number;
+  } | null>(null);
+  const t = useTranslations();
+
+  useEffect(() => {
+    // Don't try to load progress for parent categories or random challenges
+    if (category.isParent || category.specialId === "random") {
+      return;
+    }
+
+    // For special categories (daily/hidden-daily), we need to get the actual category ID
+    let categoryId = category.id?.toString();
+    if (
+      category.specialId === "daily" ||
+      category.specialId === "hidden-daily"
+    ) {
+      categoryId = category.specialId;
+    }
+
+    if (categoryId) {
+      const savedProgress = getGameProgress(categoryId);
+      if (savedProgress) {
+        setProgress({
+          completed: savedProgress.completedWords,
+          total: savedProgress.totalWords,
+        });
+      }
+    }
+  }, [category]);
+
   const getIcon = () => {
     if (category.isSpecial) {
       switch (category.specialId) {
@@ -120,6 +110,33 @@ function CategoryCard({
       <FolderIcon className="w-8 h-8" />
     ) : (
       <ChevronRightIcon className="w-8 h-8" />
+    );
+  };
+
+  const renderProgress = () => {
+    if (!progress || category.isParent) return null;
+
+    const percentage = Math.round((progress.completed / progress.total) * 100);
+    return (
+      <div className="mt-4">
+        <div className="flex justify-between items-center mb-1">
+          <span className="text-sm font-medium text-gray-600">
+            {t("app.progress.wordsProgress", {
+              completed: progress.completed,
+              total: progress.total,
+            })}
+          </span>
+          <span className="text-sm font-medium text-gray-600">
+            {t("app.progress.percentage", { percentage })}
+          </span>
+        </div>
+        <div className="w-full bg-gray-200 rounded-full h-2">
+          <div
+            className="h-2 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"
+            style={{ width: `${percentage}%` }}
+          />
+        </div>
+      </div>
     );
   };
 
@@ -212,13 +229,25 @@ function CategoryCard({
                     : "bg-indigo-100 text-indigo-700"
                 }`}
               >
-                {category._count.words} words
+                {t("app.wordCount", { count: category._count.words })}
               </span>
             )}
           </div>
           <p className={category.isSpecial ? "text-white/90" : "text-gray-600"}>
             {category.description}
           </p>
+          {!category.isSpecial && renderProgress()}
+          {category.specialId &&
+            category.specialId !== "random" &&
+            category.expiresAt && (
+              <div
+                className={
+                  category.isSpecial ? "text-white/90" : "text-gray-600"
+                }
+              >
+                <CountdownTimer expiresAt={category.expiresAt} />
+              </div>
+            )}
         </div>
       </div>
     </Link>
@@ -244,8 +273,7 @@ function CategoriesSection({ selectedLanguage }: { selectedLanguage: string }) {
       try {
         const res = await fetch(`/api/categories?language=${selectedLanguage}`);
         const data = await res.json();
-        const specialCategories = createSpecialCategories(data, t);
-        setCategories([...specialCategories, ...data]);
+        setCategories(data);
       } catch {
         setError(t("app.error.failedToLoad"));
       } finally {

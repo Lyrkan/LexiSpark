@@ -9,6 +9,7 @@ import {
   checkWord,
   SerializedBloomFilter,
 } from "@/lib/bloomFilter";
+import { saveGameState, loadGameState } from "@/lib/storage";
 import LoadingSpinner from "@/app/components/LoadingSpinner";
 import VictoryModal from "@/app/components/VictoryModal";
 import WordGridItem from "@/app/components/WordGridItem";
@@ -73,15 +74,34 @@ export default function GameClient({ id }: { id: string }) {
         deserializedBloomFilterRef.current =
           deserializeBloomFilter(bloomFilter);
 
-        setGameState({
-          wordLengths: data.wordLengths,
-          bloomFilter,
-          guessedWords: new Array(data.wordLengths.length).fill(null),
-          startTime: Date.now(),
-          endTime: null,
-          categoryName: data.categoryName,
-          categoryId: data.categoryId,
-        });
+        // Try to load saved state
+        const savedState = loadGameState(id, bloomFilter);
+        if (savedState) {
+          // Restore the guessed words set
+          savedState.guessedWords
+            .filter((w): w is string => w !== null)
+            .forEach((w) => guessedWordsSet.add(normalizeText(w)));
+
+          setGameState({
+            wordLengths: data.wordLengths,
+            bloomFilter,
+            guessedWords: savedState.guessedWords,
+            startTime: savedState.startTime,
+            endTime: savedState.endTime,
+            categoryName: data.categoryName,
+            categoryId: data.categoryId,
+          });
+        } else {
+          setGameState({
+            wordLengths: data.wordLengths,
+            bloomFilter,
+            guessedWords: new Array(data.wordLengths.length).fill(null),
+            startTime: Date.now(),
+            endTime: null,
+            categoryName: data.categoryName,
+            categoryId: data.categoryId,
+          });
+        }
       })
       .catch(() => {
         setError(t("app.error.failedToLoadGame"));
@@ -139,13 +159,24 @@ export default function GameClient({ id }: { id: string }) {
         scrollToIndexRef.current = data.index;
 
         const allWordsGuessed = newGuessedWords.every((w) => w !== null);
-        setGameState({
+        const newGameState = {
           ...gameState,
           guessedWords: newGuessedWords,
           lastGuessedIndex: data.index,
           endTime: allWordsGuessed ? Date.now() : null,
-        });
+        };
+
+        setGameState(newGameState);
         setCurrentGuess("");
+
+        // Save the game state
+        saveGameState(id, {
+          guessedWords: newGameState.guessedWords,
+          startTime: newGameState.startTime,
+          endTime: newGameState.endTime,
+          bloomFilter: newGameState.bloomFilter,
+          expiresAt: data.expiresAt,
+        });
       } catch (error) {
         const errorMessage =
           error instanceof Error ? error.message : "Unknown error";

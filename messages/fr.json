@@ -8,6 +8,11 @@
     "error": {
       "failedToLoad": "Échec du chargement des catégories",
       "failedToLoadGame": "Échec du chargement des données du jeu"
+    },
+    "wordCount": "{count} mots",
+    "progress": {
+      "wordsProgress": "{completed}/{total} mots",
+      "percentage": "{percentage}%"
     }
   },
   "navigation": {
@@ -18,6 +23,7 @@
     "time": "Temps",
     "wordsRemaining": "{count} mots restants",
     "wordsFound": "Mots trouvés",
+    "timeLeft": "Se réinitialise dans <strong>{timeLeft}</strong>",
     "hiddenDaily": {
       "title": "Défi quotidien mystère",
       "subtitle": "Essayez de deviner la catégorie !"

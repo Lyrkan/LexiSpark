@@ -8,6 +8,11 @@
     "error": {
       "failedToLoad": "Failed to load categories",
       "failedToLoadGame": "Failed to load game data"
+    },
+    "wordCount": "{count} words",
+    "progress": {
+      "wordsProgress": "{completed}/{total} words",
+      "percentage": "{percentage}%"
     }
   },
   "navigation": {
@@ -18,6 +23,7 @@
     "time": "Time",
     "wordsRemaining": "{count} words remaining",
     "wordsFound": "Words Found",
+    "timeLeft": "Resets in <strong>{timeLeft}</strong>",
     "hiddenDaily": {
       "title": "Hidden Daily Challenge",
       "subtitle": "Try to guess what category this is!"
