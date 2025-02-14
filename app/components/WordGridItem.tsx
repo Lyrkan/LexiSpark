@@ -17,7 +17,7 @@ const WordGridItem = memo(
           : "bg-white/80 backdrop-blur-sm hover:shadow-xl hover:scale-102"
       }`}
       style={{
-        minWidth: `${Math.max(length * 1.1 + 1.5, 2.5)}rem`,
+        width: `${Math.max(length * 1.1 + 1.5, 2.5)}rem`,
       }}
     >
       {word ? (
